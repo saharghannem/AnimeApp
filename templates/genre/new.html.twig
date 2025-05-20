@@ -1,0 +1,140 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Genre{% endblock %}
+
+{% block stylesheets %}
+<style>
+    /* Styles pour la page de création de genre */
+    .genre-form-section {
+        padding: 50px 0;
+        background-color: #0b0c2a;
+        min-height: calc(100vh - 300px);
+    }
+    
+    .genre-form-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .genre-form-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .genre-form-header h1 {
+        color: #e53637;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-family: 'Oswald', sans-serif;
+        letter-spacing: 1px;
+    }
+    
+    .genre-form-card {
+        background-color: #1c1c3a;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Style pour le formulaire */
+    .genre-form-card .form-group {
+        margin-bottom: 25px;
+    }
+    
+    .genre-form-card label {
+        color: #fff;
+        font-weight: 500;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .genre-form-card input,
+    .genre-form-card textarea {
+        width: 100%;
+        background-color: #131335;
+        border: 1px solid #2a2a5a;
+        color: #fff;
+        padding: 12px 15px;
+        border-radius: 5px;
+    }
+    
+    .genre-form-card input:focus,
+    .genre-form-card textarea:focus {
+        border-color: #e53637;
+        outline: none;
+        box-shadow: 0 0 0 0.2rem rgba(229, 54, 55, 0.25);
+    }
+    
+    .genre-form-card textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+    
+    /* Style pour les boutons */
+    .genre-form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+    }
+    
+    .back-button {
+        color: #b7b7b7;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .back-button i {
+        margin-right: 5px;
+    }
+    
+    .back-button:hover {
+        color: #e53637;
+        transform: translateX(-3px);
+    }
+    
+    .submit-button {
+        background-color: #e53637;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .submit-button:hover {
+        background-color: #fff;
+        color: #e53637;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(229, 54, 55, 0.4);
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<section class="genre-form-section">
+    <div class="container">
+        <div class="genre-form-container">
+            <div class="genre-form-header">
+                <h1>Create New Genre</h1>
+            </div>
+            
+            <div class="genre-form-card">
+                {{ include('genre/_form.html.twig') }}
+                
+                <div class="genre-form-actions">
+                    <a href="{{ path('app_genre_index') }}" class="back-button">
+                        <i class="fa fa-arrow-left"></i> Back to list
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

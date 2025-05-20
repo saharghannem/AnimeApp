@@ -1,0 +1,401 @@
+<?php
+
+namespace App\Service;
+
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+
+class GeminiService
+{
+    private string $apiKey;
+    private HttpClientInterface $httpClient;
+
+    public function __construct(HttpClientInterface $httpClient)
+    {
+        $this->apiKey = 'AIzaSyBcCKLMBolJ6pEOQOyXheQoBSWekcyLJp4';
+        $this->httpClient = $httpClient;
+    }
+
+    /**
+     * Génère des questions de quiz sur les animes en utilisant l'API Gemini
+     */
+    public function generateQuizQuestions(array $animes, string $quizType, int $numberOfQuestions = 5): array
+    {
+        // Préparer les données des animes pour l'API
+        $animeData = [];
+        foreach ($animes as $index => $anime) {
+            if ($index >= 10) break; // Limiter le nombre d'animes envoyés pour éviter les requêtes trop volumineuses
+            
+            $animeInfo = [
+                'id' => $anime->getId(),
+                'name' => $anime->getName(),
+                'description' => $anime->getDescrition(),
+                'status' => $anime->getStatut(),
+                'age' => $anime->getAge(),
+                'image' => $anime->getImage(),
+            ];
+            
+            // Ajouter le genre si disponible
+            if ($anime->getGenre_id()) {
+                $animeInfo['genre'] = $anime->getGenre_id()->getName();
+            } else {
+                $animeInfo['genre'] = 'Non catégorisé';
+            }
+            
+            $animeData[] = $animeInfo;
+        }
+
+        // Générer une requête qui sera utilisée dans le prompt
+        $queryText = match($quizType) {
+            'personnages' => "Create a creative anime character quiz for these anime titles",
+            'univers' => "Create a creative anime universe and worlds quiz for these anime titles",
+            'intrigue' => "Create a creative anime plot and story quiz for these anime titles",
+            'genres' => "Create a quiz about the genres of these anime titles",
+            'ages' => "Create a quiz about the age ratings of these anime titles",
+            'statuts' => "Create a quiz about the status of these anime titles",
+            default => "Create a diverse creative anime quiz mixing character, plot, universe and themes questions"
+        };
+
+        // Convertir les données d'anime en format JSON pour le prompt
+        $animeListJSON = json_encode($animeData);
+        
+        // Construction du prompt inspiré du format fourni
+        $userMessage = <<<PROMPT
+{$queryText}
+
+Here is the anime data to use for the quiz: {$animeListJSON}
+
+The quiz should have {$numberOfQuestions} questions with 4 options each. Make the questions creative, diverse and interesting.
+PROMPT;
+
+        // Format de la conversation pour l'API Gemini
+        $conversationContents = [
+            [
+                'role' => 'user',
+                'parts' => [
+                    ['text' => 'give me the informations of most popular anime'],
+                ]
+            ],
+            [
+                'role' => 'model',
+                'parts' => [
+                    ['text' => "Here's a thinking process to construct the \"Most Popular Anime\" response: [...]"]
+                ]
+            ],
+            [
+                'role' => 'user',
+                'parts' => [
+                    ['text' => 'anime quiz'],
+                ]
+            ],
+            [
+                'role' => 'model',
+                'parts' => [
+                    ['text' => "Here's a thinking process that leads to the anime quiz: [...]"]
+                ]
+            ],
+            [
+                'role' => 'user',
+                'parts' => [
+                    ['text' => $userMessage],
+                ]
+            ]
+        ];
+
+        try {
+            // Appeler l'API Gemini avec une conversation au format du prompt fourni
+            $response = $this->httpClient->request('POST', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' . $this->apiKey, [
+                'json' => [
+                    'contents' => $conversationContents,
+                    'generationConfig' => [
+                        'temperature' => 0.7,
+                        'topK' => 40,
+                        'topP' => 0.95,
+                        'maxOutputTokens' => 8192,
+                    ]
+                ]
+            ]);
+
+            $data = $response->toArray();
+            
+            // Logger la réponse complète pour le débogage
+            error_log('Gemini API response: ' . json_encode($data));
+            
+            // Extraire et analyser la réponse
+            if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+                $generatedText = $data['candidates'][0]['content']['parts'][0]['text'];
+                return $this->parseGeminiResponse($generatedText, $animeData);
+            }
+            
+            return [];
+        } catch (\Exception $e) {
+            error_log('Erreur lors de l\'appel à l\'API Gemini: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Analyse la réponse de l'API Gemini et la transforme en questions de quiz
+     */
+    private function parseGeminiResponse(string $response, array $animeData): array
+    {
+        $questions = [];
+        
+        // Nettoyage initial de la réponse
+        $response = trim($response);
+        error_log('Réponse brute de Gemini: ' . $response);
+        
+        // Tenter d'extraire une structure de quiz similaire à celle du prompt fourni
+        try {
+            // 1. Essayer d'extraire un tableau JSON complet
+            if (preg_match('/\[\s*\{.*\}\s*\]/s', $response, $matches)) {
+                $jsonText = $matches[0];
+                $parsedQuestions = json_decode($jsonText, true);
+                
+                if (json_last_error() === JSON_ERROR_NONE && !empty($parsedQuestions)) {
+                    error_log('Succès extraction JSON complet: ' . count($parsedQuestions) . ' questions');
+                    return $this->normalizeQuestions($parsedQuestions, $animeData);
+                }
+            }
+            
+            // 2. Essayer de trouver des blocs de code ou des questions formatées
+            if (preg_match_all('/```(?:json)?\s*(\{.*?\})\s*```|\{\s*"question".*?"correct_answer".*?\}/s', $response, $matches)) {
+                foreach ($matches[0] as $match) {
+                    $match = preg_replace('/```(?:json)?\s*(.*)\s*```/s', '$1', $match);
+                    $question = json_decode($match, true);
+                    if (json_last_error() === JSON_ERROR_NONE) {
+                        $questions[] = $question;
+                    }
+                }
+                
+                if (!empty($questions)) {
+                    error_log('Succès extraction questions individuelles JSON: ' . count($questions) . ' questions');
+                    return $this->normalizeQuestions($questions, $animeData);
+                }
+            }
+
+            // 3. Analyser un format de quiz numéroté standard s'il semble être structuré comme celui fourni
+            if (preg_match_all('/(?:\d+\.|\*\*)\s*(.+?)\?\s*(?:\n|$)((?:.*?\bA\).*?\n.*?\bB\).*?\n.*?\bC\).*?\n.*?\bD\).*?)(?:\n\s*(?:Correct|Réponse|Answer).*?:\s*([A-D]))?/si', $response, $matches, PREG_SET_ORDER)) {
+                foreach ($matches as $match) {
+                    $questionText = trim($match[1]) . '?';
+                    $optionsBlock = $match[2];
+                    $correctLetter = isset($match[3]) ? trim($match[3]) : null;
+                    
+                    // Extraire les options
+                    preg_match_all('/([A-D])\)\s*(.+?)(?=\n[A-D]\)|$)/s', $optionsBlock, $optionMatches, PREG_SET_ORDER);
+                    
+                    $options = [];
+                    $optionMap = [];
+                    
+                    foreach ($optionMatches as $optionMatch) {
+                        $letter = trim($optionMatch[1]);
+                        $optionText = trim($optionMatch[2]);
+                        $options[] = $optionText;
+                        $optionMap[$letter] = $optionText;
+                    }
+                    
+                    // Générer des options par défaut si nécessaire
+                    if (empty($options)) {
+                        $options = ['Option A', 'Option B', 'Option C', 'Option D'];
+                    }
+                    
+                    // Déterminer la réponse correcte
+                    $correctAnswer = null;
+                    if ($correctLetter && isset($optionMap[$correctLetter])) {
+                        $correctAnswer = $optionMap[$correctLetter];
+                    } else {
+                        // Chercher une indication de réponse correcte dans le texte
+                        preg_match('/(?:Correct|Réponse|Answer).*?:\s*(.+?)(?:\n|$)/i', $optionsBlock, $answerMatch);
+                        if (!empty($answerMatch[1])) {
+                            $correctAnswer = trim($answerMatch[1]);
+                        } else {
+                            // Chercher une option avec un astérisque ou en gras
+                            foreach ($optionMap as $letter => $text) {
+                                if (strpos($text, '*') !== false || strpos($text, '**') !== false) {
+                                    $correctAnswer = preg_replace('/[\*\*]+/', '', $text);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Si toujours pas de réponse, utiliser la première option
+                    if (empty($correctAnswer) && !empty($options)) {
+                        $correctAnswer = $options[0];
+                    }
+                    
+                    // Déterminer l'anime associé
+                    $animeId = null;
+                    foreach ($animeData as $anime) {
+                        if (stripos($questionText, $anime['name']) !== false) {
+                            $animeId = $anime['id'];
+                            break;
+                        }
+                    }
+                    
+                    // Si l'anime n'est pas identifié, utiliser le premier disponible
+                    if ($animeId === null && !empty($animeData)) {
+                        $animeId = $animeData[0]['id'];
+                    } else if ($animeId === null) {
+                        $animeId = 1;
+                    }
+                    
+                    $questions[] = [
+                        'id' => $animeId,
+                        'question' => $questionText,
+                        'options' => $options,
+                        'correct_answer' => $correctAnswer
+                    ];
+                }
+                
+                if (!empty($questions)) {
+                    error_log('Succès extraction questions formatées: ' . count($questions) . ' questions');
+                    return $this->normalizeQuestions($questions, $animeData);
+                }
+            }
+            
+            // 4. Dernier recours: extraire des questions de n'importe quel type de format
+            if (preg_match_all('/\b(?:Question|\d+\.)[:\s]\s*(.+?)\?/i', $response, $questionMatches)) {
+                foreach ($questionMatches[1] as $index => $questionText) {
+                    $animeId = null;
+                    foreach ($animeData as $anime) {
+                        if (stripos($questionText, $anime['name']) !== false) {
+                            $animeId = $anime['id'];
+                            break;
+                        }
+                    }
+                    
+                    // Générer des options par défaut si nécessaire
+                    $options = ['Option A', 'Option B', 'Option C', 'Option D'];
+                    
+                    $questions[] = [
+                        'id' => $animeId ?? 1,
+                        'question' => $questionText . '?',
+                        'options' => $options,
+                        'correct_answer' => $options[0]
+                    ];
+                }
+                
+                if (!empty($questions)) {
+                    error_log('Extraction de secours: ' . count($questions) . ' questions');
+                    return $this->normalizeQuestions($questions, $animeData);
+                }
+            }
+        } catch (\Exception $e) {
+            error_log('Erreur lors de l\'analyse de la réponse Gemini: ' . $e->getMessage());
+        }
+        
+        // Si tout échoue, générer des questions simples à partir des animes disponibles
+        return $this->generateFallbackQuestions($animeData);
+    }
+    
+    /**
+     * Normalise le format des questions pour garantir la cohérence
+     */
+    private function normalizeQuestions(array $questions, array $animeData): array
+    {
+        $normalized = [];
+        foreach ($questions as $question) {
+            // S'assurer que les champs requis sont présents
+            if (!isset($question['question'])) {
+                continue;
+            }
+            
+            // S'assurer que l'ID est un nombre valide
+            if (!isset($question['id']) || !is_numeric($question['id'])) {
+                // Essayer de trouver l'anime associé par le contenu de la question
+                $question['id'] = null;
+                foreach ($animeData as $anime) {
+                    if (stripos($question['question'], $anime['name']) !== false) {
+                        $question['id'] = $anime['id'];
+                        break;
+                    }
+                }
+                
+                // Si aucun anime n'est identifié, utiliser le premier disponible
+                if ($question['id'] === null && !empty($animeData)) {
+                    $question['id'] = $animeData[0]['id'];
+                } else if ($question['id'] === null) {
+                    $question['id'] = 1;
+                }
+            }
+            
+            // S'assurer que les options sont un tableau
+            if (!isset($question['options']) || !is_array($question['options'])) {
+                $question['options'] = ['Option A', 'Option B', 'Option C', 'Option D'];
+            }
+            
+            // S'assurer qu'il y a exactement 4 options
+            while (count($question['options']) < 4) {
+                $question['options'][] = 'Option ' . count($question['options']);
+            }
+            
+            // Limiter à 4 options si nécessaire
+            if (count($question['options']) > 4) {
+                $question['options'] = array_slice($question['options'], 0, 4);
+            }
+            
+            // S'assurer que la réponse correcte est définie et qu'elle est dans les options
+            if (!isset($question['correct_answer']) || !in_array($question['correct_answer'], $question['options'])) {
+                $question['correct_answer'] = $question['options'][0];
+            }
+            
+            // Ajouter l'image de l'anime à la question
+            if (!isset($question['image'])) {
+                $animeId = $question['id'];
+                foreach ($animeData as $anime) {
+                    if ($anime['id'] == $animeId) {
+                        $question['image'] = $anime['image'] ?? '/img/anime/default.jpg';
+                        break;
+                    }
+                }
+            }
+            
+            $normalized[] = $question;
+        }
+        
+        return $normalized;
+    }
+    
+    /**
+     * Génère des questions de secours si l'API échoue
+     */
+    private function generateFallbackQuestions(array $animeData): array
+    {
+        $questions = [];
+        $count = min(5, count($animeData));
+        
+        for ($i = 0; $i < $count; $i++) {
+            if (!isset($animeData[$i])) continue;
+            
+            $anime = $animeData[$i];
+            $id = $anime['id'];
+            $name = $anime['name'];
+            
+            // Types de questions diverses
+            $questionTypes = [
+                "Quel est le thème principal de l'anime '{$name}' ?",
+                "Dans quel univers se déroule l'anime '{$name}' ?",
+                "Quel personnage est le protagoniste de '{$name}' ?",
+                "Quelle est l'intrigue principale de '{$name}' ?"
+            ];
+            
+            // Options génériques
+            $options = [
+                "Une histoire d'amour et de découverte de soi", 
+                "Une aventure épique dans un monde fantastique", 
+                "Un combat contre des forces maléfiques", 
+                "Une quête pour retrouver un trésor perdu"
+            ];
+            
+            $questions[] = [
+                'id' => $id,
+                'question' => $questionTypes[$i % count($questionTypes)],
+                'options' => $options,
+                'correct_answer' => $options[0],
+                'image' => $anime['image'] ?? '/img/anime/default.jpg'
+            ];
+        }
+        
+        return $questions;
+    }
+}

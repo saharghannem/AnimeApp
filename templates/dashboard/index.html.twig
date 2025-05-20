@@ -1,0 +1,349 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block stylesheets %}
+<style>
+    /* Dashboard main styles */
+    .dashboard-section {
+        padding: 50px 0;
+        background-color: #0b0c2a;
+        min-height: calc(100vh - 300px);
+    }
+    
+    .dashboard-header {
+        margin-bottom: 40px;
+        text-align: center;
+    }
+    
+    .dashboard-header h1 {
+        color: #e53637;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-family: 'Oswald', sans-serif;
+        letter-spacing: 1px;
+        margin-bottom: 15px;
+    }
+    
+    .dashboard-header p {
+        color: #ffffff;
+        max-width: 700px;
+        margin: 0 auto;
+        opacity: 0.8;
+    }
+    
+    /* Stats cards */
+    .stats-container {
+        margin-bottom: 40px;
+    }
+    
+    .stat-card {
+        background-color: #1c1c3a;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        height: 100%;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        color: #e53637;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        color: #b7b7b7;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    /* Anime cards */
+    .anime-list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+    
+    .anime-list-title {
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .add-anime-btn {
+        background-color: #e53637;
+        color: #ffffff;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .add-anime-btn i {
+        margin-right: 5px;
+    }
+    
+    .add-anime-btn:hover {
+        background-color: #ffffff;
+        color: #e53637;
+        transform: translateY(-2px);
+    }
+    
+    .anime-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    
+    .anime-card {
+        background-color: #1c1c3a;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease;
+    }
+    
+    .anime-card:hover {
+        transform: translateY(-10px);
+    }
+    
+    .anime-image {
+        height: 200px;
+        background-color: #131335;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .anime-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .anime-image .default-image {
+        font-size: 3rem;
+        color: #e53637;
+    }
+    
+    .anime-content {
+        padding: 20px;
+    }
+    
+    .anime-title {
+        font-weight: 600;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        color: #ffffff;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .anime-desc {
+        color: #b7b7b7;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.5;
+    }
+    
+    .anime-genre {
+        display: inline-block;
+        background-color: #131335;
+        color: #e53637;
+        font-size: 0.75rem;
+        padding: 5px 10px;
+        border-radius: 20px;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+    
+    .anime-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 15px;
+    }
+    
+    .anime-action-btn {
+        font-size: 0.85rem;
+        padding: 5px 12px;
+        border-radius: 5px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .view-btn {
+        background-color: #131335;
+        color: #ffffff;
+    }
+    
+    .edit-btn {
+        background-color: #e53637;
+        color: #ffffff;
+    }
+    
+    .anime-action-btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+        background-color: rgba(28, 28, 58, 0.5);
+        border-radius: 10px;
+    }
+    
+    .empty-icon {
+        font-size: 3rem;
+        color: #e53637;
+        margin-bottom: 20px;
+        opacity: 0.7;
+    }
+    
+    .empty-text {
+        color: #b7b7b7;
+        margin-bottom: 25px;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<section class="dashboard-section">
+    <div class="container">
+        <div class="dashboard-header">
+            <h1>Tableau de Bord Anime</h1>
+            <p>Bienvenue sur votre tableau de bord administratif. Consultez les statistiques et gérez votre collection d'animes.</p>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="row stats-container">
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fa fa-film"></i>
+                    </div>
+                    <div class="stat-number">{{ totalAnimes }}</div>
+                    <div class="stat-label">Total Animes</div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fa fa-tags"></i>
+                    </div>
+                    <div class="stat-number">{{ totalGenres }}</div>
+                    <div class="stat-label">Genres</div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fa fa-eye"></i>
+                    </div>
+                    <div class="stat-number">{{ totalAnimes > 0 ? totalAnimes * 35 : 0 }}</div>
+                    <div class="stat-label">Vues</div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fa fa-users"></i>
+                    </div>
+                    <div class="stat-number">{{ totalAnimes > 0 ? totalAnimes * 18 : 0 }}</div>
+                    <div class="stat-label">Utilisateurs</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Anime List -->
+        <div class="anime-list-section">
+            <div class="anime-list-header">
+                <h2 class="anime-list-title">Vos Animes</h2>
+                <a href="{{ path('app_anime_new') }}" class="add-anime-btn">
+                    <i class="fa fa-plus"></i> Ajouter un anime
+                </a>
+            </div>
+            
+            {% if animes|length > 0 %}
+                <div class="anime-grid">
+                    {% for anime in animes %}
+                        <div class="anime-card">
+                            <div class="anime-image">
+                                {% if anime.image is defined and anime.image is not empty %}
+                                    <img src="{{ anime.image }}" alt="{{ anime.name }}">
+                                {% else %}
+                                    <div class="default-image">
+                                        <i class="fa fa-play-circle"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="anime-content">
+                                <h3 class="anime-title">{{ anime.name }}</h3>
+                                <p class="anime-desc">{{ anime.descrition }}</p>
+                                
+                                {% if anime.genre_id is defined and anime.genre_id is not null %}
+                                    <div class="anime-genre">{{ anime.genre_id.name }}</div>
+                                {% endif %}
+                                
+                                <div class="anime-actions">
+                                    <a href="{{ path('app_anime_show', {'id': anime.id}) }}" class="anime-action-btn view-btn">
+                                        <i class="fa fa-eye"></i> Voir
+                                    </a>
+                                    <a href="{{ path('app_anime_edit', {'id': anime.id}) }}" class="anime-action-btn edit-btn">
+                                        <i class="fa fa-edit"></i> Éditer
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fa fa-film"></i>
+                    </div>
+                    <p class="empty-text">Aucun anime n'a été ajouté pour le moment. Commencez par en créer un.</p>
+                    <a href="{{ path('app_anime_new') }}" class="add-anime-btn">
+                        <i class="fa fa-plus"></i> Ajouter votre premier anime
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

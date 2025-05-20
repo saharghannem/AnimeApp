@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css" type="text/css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css" type="text/css">
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+    <style>
+        .hero-section {
+            min-height: 500px;
+            background-image: url('/img/hero/hero-1.jpg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            padding: 50px 0;
+        }
+        .product-item {
+            margin-bottom: 30px;
+        }
+        .product-image {
+            height: 300px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 5px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .ep {
+            background: #e53637;
+            color: #fff;
+            font-size: 14px;
+            padding: 5px 10px;
+            position: absolute;
+            left: 10px;
+            top: 10px;
+        }
+        .section-title {
+            margin-bottom: 30px;
+        }
+        .section-title h4 {
+            color: #fff;
+            font-weight: 700;
+            font-family: "Oswald", sans-serif;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-2">
+                    <div class="header__logo">
+                        <a href="/">
+                            <img src="/img/logo.png" alt="">
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="header__nav">
+                        <nav class="header__menu">
+                            <ul>
+                                <li class="active"><a href="/">Homepage</a></li>
+                                <li><a href="#">Categories</a></li>
+                                <li><a href="#">Our Blog</a></li>
+                                <li><a href="#">Contacts</a></li>
+                                <li><a href="#">Dashboard</a></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <div class="header__right">
+                        <a href="#" class="search-switch"><span class="icon_search"></span></a>
+                        <a href="#"><span class="icon_profile"></span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="hero__text">
+                        <div class="label" style="display: inline-block; background: #3d3d3d; font-size: 13px; color: #fff; padding: 5px 10px; margin-bottom: 16px;">Adventure</div>
+                        <h2 style="color: #fff; font-weight: 700; font-size: 42px; margin-bottom: 18px;">Fate / Stay Night: Unlimited Blade Works</h2>
+                        <p style="color: #fff; margin-bottom: 20px;">After 30 days of travel across the world...</p>
+                        <a href="#" style="display: inline-block; font-size: 15px; color: #fff; background: rgba(255, 255, 255, 0.1); padding: 10px 25px; border-radius: 4px;"><span>Watch Now</span> <i class="fa fa-angle-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Section -->
+    <section style="padding-top: 70px; padding-bottom: 50px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="section-title">
+                        <h4>Trending Now</h4>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-4 col-md-6 col-sm-6">
+                            <div class="product-item">
+                                <div class="product-image" style="background-image: url('/img/trending/trend-1.jpg');">
+                                    <div class="ep">18 / 18</div>
+                                </div>
+                                <h5 style="color: #fff;"><a href="#" style="color: #fff;">The Seven Deadly Sins: Wrath of the Gods</a></h5>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-sm-6">
+                            <div class="product-item">
+                                <div class="product-image" style="background-image: url('/img/trending/trend-2.jpg');">
+                                    <div class="ep">18 / 18</div>
+                                </div>
+                                <h5 style="color: #fff;"><a href="#" style="color: #fff;">Gintama Movie 2: Kanketsu-hen</a></h5>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-sm-6">
+                            <div class="product-item">
+                                <div class="product-image" style="background-image: url('/img/trending/trend-3.jpg');">
+                                    <div class="ep">18 / 18</div>
+                                </div>
+                                <h5 style="color: #fff;"><a href="#" style="color: #fff;">Shingeki no Kyojin Season 3 Part 2</a></h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="section-title">
+                        <h4>Top Views</h4>
+                    </div>
+                    <div class="product-item" style="margin-bottom: 30px;">
+                        <div class="product-image" style="background-image: url('/img/sidebar/tv-1.jpg'); height: 190px;">
+                            <div class="ep">18 / ?</div>
+                        </div>
+                        <h5 style="color: #fff;"><a href="#" style="color: #fff;">Boruto: Naruto next generations</a></h5>
+                    </div>
+                    <div class="product-item">
+                        <div class="product-image" style="background-image: url('/img/sidebar/tv-2.jpg'); height: 190px;">
+                            <div class="ep">18 / ?</div>
+                        </div>
+                        <h5 style="color: #fff;"><a href="#" style="color: #fff;">The Seven Deadly Sins: Wrath of the Gods</a></h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3">
+                    <div class="footer__logo">
+                        <a href="/"><img src="/img/logo.png" alt=""></a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="footer__nav">
+                        <ul>
+                            <li class="active"><a href="/">Homepage</a></li>
+                            <li><a href="#">Categories</a></li>
+                            <li><a href="#">Our Blog</a></li>
+                            <li><a href="#">Contacts</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <p style="color: #fff;">Copyright &copy;2025 All rights reserved | This template is made with <i class="fa fa-heart" style="color: #e53637;"></i> by <a href="https://colorlib.com" target="_blank" style="color: #e53637;">Colorlib</a></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/jquery-3.3.1.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+</body>
+</html>

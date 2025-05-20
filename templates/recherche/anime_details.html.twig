@@ -1,0 +1,420 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails de {{ anime.name }} - Recherche Avancée{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .detail-container {
+        background-color: #0b0c2a;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
+        margin-bottom: 50px;
+        border: 1px solid rgba(85, 90, 155, 0.4);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .detail-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(to right, #e53637, rgba(229, 54, 55, 0.2));
+        z-index: 2;
+    }
+
+    .anime-header {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 30px;
+    }
+
+    .anime-image {
+        width: 250px;
+        height: 350px;
+        object-fit: cover;
+        border-radius: 16px;
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.5);
+        margin-right: 30px;
+    }
+
+    .anime-info {
+        flex: 1;
+    }
+
+    .anime-title {
+        color: #e0e0e0;
+        font-size: 2.2rem;
+        margin-bottom: 15px;
+        font-weight: 700;
+        position: relative;
+        display: inline-block;
+        letter-spacing: 1px;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    .anime-title:after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -8px;
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(to right, #e53637, rgba(229, 54, 55, 0.2));
+        border-radius: 2px;
+    }
+
+    .anime-meta {
+        color: #8c9fc5;
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+    }
+
+    .anime-meta span {
+        display: inline-block;
+        margin-right: 20px;
+    }
+
+    .anime-meta i {
+        color: #e53637;
+        margin-right: 5px;
+    }
+
+    .anime-description {
+        color: #a0a0a0;
+        line-height: 1.7;
+        margin-bottom: 20px;
+    }
+
+    .tabs-container {
+        margin-top: 40px;
+    }
+
+    .tabs-nav {
+        display: flex;
+        border-bottom: 1px solid rgba(85, 90, 155, 0.4);
+        margin-bottom: 25px;
+    }
+
+    .tab-link {
+        padding: 12px 25px;
+        color: #8c9fc5;
+        font-size: 1.1rem;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-right: 5px;
+    }
+
+    .tab-link.active {
+        color: #e0e0e0;
+    }
+
+    .tab-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: #e53637;
+        border-radius: 3px 3px 0 0;
+    }
+
+    .tab-link:hover {
+        color: #e0e0e0;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .info-section {
+        background: rgba(20, 22, 60, 0.7);
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        border: 1px solid rgba(85, 90, 155, 0.4);
+    }
+
+    .info-section h3 {
+        color: #e0e0e0;
+        margin-bottom: 15px;
+        font-size: 1.3rem;
+        position: relative;
+        padding-left: 18px;
+    }
+
+    .info-section h3::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 5px;
+        width: 4px;
+        height: 16px;
+        background: #e53637;
+        border-radius: 4px;
+    }
+
+    .info-content {
+        color: #a0a0a0;
+        line-height: 1.7;
+    }
+
+    .search-result {
+        background: rgba(11, 12, 42, 0.8);
+        border: 1px solid rgba(85, 90, 155, 0.4);
+        padding: 18px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        transition: all 0.3s;
+    }
+
+    .search-result:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        border-color: rgba(229, 54, 55, 0.4);
+    }
+
+    .search-result h4 {
+        color: #e0e0e0;
+        margin-bottom: 8px;
+        font-size: 1.1rem;
+    }
+
+    .search-result p {
+        color: #8c9fc5;
+        margin-bottom: 10px;
+        line-height: 1.5;
+    }
+
+    .search-result .source {
+        color: rgba(229, 54, 55, 0.8);
+        font-size: 0.9rem;
+    }
+
+    .search-badge {
+        background: linear-gradient(135deg, #0b0c2a, #1d1e42);
+        border: 1px solid rgba(229, 54, 55, 0.5);
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        color: #e0e0e0;
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        margin-top: 5px;
+        margin-bottom: 10px;
+    }
+
+    .search-badge::before {
+        content: '';
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23e53637" d="M11 2C15.968 2 20 6.032 20 11C20 15.968 15.968 20 11 20C6.032 20 2 15.968 2 11C2 6.032 6.032 2 11 2ZM11 0C4.937 0 0 4.938 0 11C0 17.062 4.938 22 11 22C17.062 22 22 17.062 22 11C22 4.938 17.062 0 11 0ZM17.284 15.163L19.046 13.402L15.163 9.519V5H12.979V10.519L17.284 15.163Z"/></svg>');
+        background-size: cover;
+        margin-right: 6px;
+    }
+
+    .ai-badge {
+        background: linear-gradient(135deg, #0b0c2a, #1d1e42);
+        border: 1px solid rgba(229, 54, 55, 0.5);
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        color: #e0e0e0;
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        margin-left: 10px;
+    }
+    
+    .ai-badge::before {
+        content: '⬤';
+        color: #e53637;
+        font-size: 0.8rem;
+        margin-right: 6px;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 0.4; }
+        50% { opacity: 1; }
+        100% { opacity: 0.4; }
+    }
+
+    .back-button {
+        display: inline-block;
+        margin-bottom: 20px;
+        color: #8c9fc5;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .back-button:hover {
+        color: #e53637;
+        transform: translateX(-5px);
+    }
+
+    .back-button i {
+        margin-right: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<section class="product spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <a href="{{ path('app_anime_show', {'id': anime.id}) }}" class="back-button">
+                    <i class="fa fa-arrow-left"></i> Retour aux détails de base
+                </a>
+                
+                <div class="detail-container">
+                    <div class="anime-header">
+                        <img src="{{ asset(anime.image) }}" alt="{{ anime.name }}" class="anime-image">
+                        <div class="anime-info">
+                            <h1 class="anime-title">{{ anime.name }}</h1>
+                            
+                            <div class="anime-meta">
+                                {% if anime.genre_id %}
+                                <span><i class="fa fa-tag"></i> {{ anime.genre_id.name }}</span>
+                                {% endif %}
+                                <span><i class="fa fa-child"></i> {{ anime.age }}</span>
+                                <span><i class="fa fa-signal"></i> {{ anime.statut }}</span>
+                            </div>
+                            
+                            <div class="anime-description">
+                                {{ anime.descrition }}
+                            </div>
+                            
+                            <div class="search-badge">Recherche Google</div>
+                            <span class="ai-badge">Gemini AI</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tabs-container">
+                        <div class="tabs-nav">
+                            <div class="tab-link active" data-tab="characters">
+                                <i class="fa fa-users"></i> Personnages
+                            </div>
+                            <div class="tab-link" data-tab="universe">
+                                <i class="fa fa-globe"></i> Univers
+                            </div>
+                            <div class="tab-link" data-tab="plot">
+                                <i class="fa fa-book"></i> Intrigue
+                            </div>
+                        </div>
+                        
+                        <!-- Onglet Personnages -->
+                        <div id="characters" class="tab-content active">
+                            <div class="info-section">
+                                <h3>Résumé des personnages</h3>
+                                <div class="info-content">
+                                    {{ character_summary|nl2br }}
+                                </div>
+                            </div>
+                            
+                            <h3>Sources d'informations</h3>
+                            {% if character_info is empty %}
+                                <p>Aucune information trouvée sur les personnages.</p>
+                            {% else %}
+                                {% for info in character_info %}
+                                    <div class="search-result">
+                                        <h4>{{ info.title }}</h4>
+                                        <p>{{ info.snippet }}</p>
+                                        <div class="source">Source: {{ info.source }}</div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Onglet Univers -->
+                        <div id="universe" class="tab-content">
+                            <div class="info-section">
+                                <h3>Résumé de l'univers</h3>
+                                <div class="info-content">
+                                    {{ universe_summary|nl2br }}
+                                </div>
+                            </div>
+                            
+                            <h3>Sources d'informations</h3>
+                            {% if universe_info is empty %}
+                                <p>Aucune information trouvée sur l'univers.</p>
+                            {% else %}
+                                {% for info in universe_info %}
+                                    <div class="search-result">
+                                        <h4>{{ info.title }}</h4>
+                                        <p>{{ info.snippet }}</p>
+                                        <div class="source">Source: {{ info.source }}</div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Onglet Intrigue -->
+                        <div id="plot" class="tab-content">
+                            <div class="info-section">
+                                <h3>Résumé de l'intrigue</h3>
+                                <div class="info-content">
+                                    {{ plot_summary|nl2br }}
+                                </div>
+                            </div>
+                            
+                            <h3>Sources d'informations</h3>
+                            {% if plot_info is empty %}
+                                <p>Aucune information trouvée sur l'intrigue.</p>
+                            {% else %}
+                                {% for info in plot_info %}
+                                    <div class="search-result">
+                                        <h4>{{ info.title }}</h4>
+                                        <p>{{ info.snippet }}</p>
+                                        <div class="source">Source: {{ info.source }}</div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestion des onglets
+        const tabLinks = document.querySelectorAll('.tab-link');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // Désactiver tous les onglets
+                tabLinks.forEach(tab => tab.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Activer l'onglet sélectionné
+                this.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    });
+</script>
+{% endblock %}

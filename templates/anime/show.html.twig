@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ anime.name }}{% endblock %}
+
+{% block body %}
+<!-- Anime Details Section Begin -->
+<section class="anime-details spad">
+    <div class="container">
+        <div class="anime__details__content">
+            <div class="row">
+                <div class="col-lg-3">
+                    <div class="anime__details__pic set-bg" data-setbg="{{ anime.image }}" style="background-image: url('{{ anime.image }}'); height: 440px;">
+                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
+                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
+                    </div>
+                </div>
+                <div class="col-lg-9">
+                    <div class="anime__details__text">
+                        <div class="anime__details__title">
+                            <h3>{{ anime.name }}</h3>
+                            <span>{% if anime.genre_id is defined and anime.genre_id is not null %}{{ anime.genre_id.name }}{% else %}Non catégorisé{% endif %} • {{ anime.age }}+</span>
+                        </div>
+                        <div class="anime__details__rating">
+                            <div class="rating">
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star"></i>
+                                <i class="fa fa-star-half-o"></i>
+                            </div>
+                        </div>
+                        <p>{{ anime.descrition }}</p>
+                        <div class="anime__details__widget">
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6">
+                                    <ul>
+                                        <li><span>Type:</span> {% if anime.genre_id is defined and anime.genre_id is not null %}{{ anime.genre_id.name }}{% else %}Non catégorisé{% endif %}</li>
+                                        <li><span>Status:</span> {{ anime.statut }}</li>
+                                        <li><span>Age restriction:</span> {{ anime.age }}+</li>
+                                    </ul>
+                                </div>
+                                <div class="col-lg-6 col-md-6">
+                                    <ul>
+                                        <li><span>ID:</span> {{ anime.id }}</li>
+                                        <li><span>Quality:</span> HD</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="anime__details__btn">
+                            {% if is_granted('ROLE_ADMIN') %}
+                            <a href="{{ path('app_anime_edit', {'id': anime.id}) }}" class="primary-btn" style="margin-right: 10px;"><i class="fa fa-edit"></i> Edit</a>
+                            {% endif %}
+                            <a href="{{ path('app_recherche_anime_details', {'id': anime.id}) }}" class="primary-btn" style="margin-right: 10px; background: linear-gradient(to right, #e53637, #8c0e0f);"><i class="fa fa-search"></i> Recherche Google</a>
+                            {% if is_granted('ROLE_ADMIN') %}
+                            <div class="d-inline-block">
+                                {{ include('anime/_delete_form.html.twig', {'button_class': 'follow-btn'}) }}
+                            </div>
+                            {% endif %}
+                            <a href="{{ path('app_anime_index') }}" class="follow-btn"><i class="fa fa-angle-left"></i> Back to list</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {# Utiliser notre service local de trailers plutôt que l'URL stockée dans la BD #}
+        <div class="row">
+            <div class="col-lg-8 col-md-8">
+                <div class="anime__details__review">
+                    <div class="section-title">
+                        <h5>Trailer</h5>
+                    </div>
+                    <div class="anime__details__trailer">
+                        <iframe width="100%" height="480" src="{{ trailerInfo.url }}" 
+                            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen></iframe>
+                        <p class="mt-3">{{ trailerInfo.description }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Anime Details Section End -->
+{% endblock %}

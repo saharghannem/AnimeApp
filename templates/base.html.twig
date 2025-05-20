@@ -1,17 +1,242 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
+<html lang="en">
 
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
-        {% endblock %}
-    </head>
-    <body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Anime Template">
+    <meta name="keywords" content="Anime, unica, creative, html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title %}Anime | Template{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css" type="text/css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css" type="text/css">
+    <link rel="stylesheet" href="/css/elegant-icons.css" type="text/css">
+    <link rel="stylesheet" href="/css/plyr.css" type="text/css">
+    <link rel="stylesheet" href="/css/nice-select.css" type="text/css">
+    <link rel="stylesheet" href="/css/owl.carousel.min.css" type="text/css">
+    <link rel="stylesheet" href="/css/slicknav.min.css" type="text/css">
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+
+    <style>
+        .logout-button {
+            background-color: #e53637;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            margin-left: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .logout-button:hover {
+            background-color: #c12d2f;
+            color: white;
+        }
+
+        .role-icon {
+            margin-left: 15px;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .role-icon:hover {
+            transform: rotate(10deg) scale(1.1);
+        }
+    </style>
+
+    {% block stylesheets %}{% endblock %}
+</head>
+
+<body>
+    <!-- Preloader -->
+    <div id="preloder">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Header Begin -->
+    <header class="header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-2">
+                    <div class="header__logo">
+                        <a href="{{ path('home') }}">
+                            <img src="/img/logo.png" alt="">
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="header__nav">
+                        <nav class="header__menu mobile-menu">
+                            <ul>
+                                <li class="{% if app.request.attributes.get('_route') == 'home' %}active{% endif %}">
+                                    <a href="{{ path('home') }}">Homepage</a>
+                                </li>
+                                <li class="{% if app.request.attributes.get('_route') starts with 'app_quiz' %}active{% endif %}">
+                                    <a href="{{ path('app_quiz_index') }}">Quiz</a>
+                                </li>
+                                <li class="{% if app.request.attributes.get('_route') starts with 'app_anime' %}active{% endif %}">
+                                    <a href="{{ path('app_anime_index') }}">Anime</a>
+                                </li>
+                                {% if is_granted('ROLE_ADMIN') %}
+                                    <li class="{% if app.request.attributes.get('_route') starts with 'app_genre_' %}active{% endif %}">
+                                        <a href="{{ path('app_genre_index') }}">Genre</a>
+                                    </li>
+                                    <li class="{% if app.request.attributes.get('_route') == 'dashboard' %}active{% endif %}">
+                                        <a href="{{ path('dashboard') }}">Dashboard</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <div class="header__right">
+                        <a href="#" class="search-switch"><span class="icon_search"></span></a>
+                        {% if is_granted('IS_AUTHENTICATED_REMEMBERED') %}
+                        <a href="#" id="role-icon" class="role-icon" title="{% if is_granted('ROLE_ADMIN') %}Admin Mode{% else %}User Mode{% endif %}">
+                            {% if is_granted('ROLE_ADMIN') %}
+                                <i class="fa fa-user-secret" style="font-size: 22px; color: #e53637;"></i>
+                            {% else %}
+                                <i class="fa fa-user" style="font-size: 22px; color: #007bff;"></i>
+                            {% endif %}
+                        </a>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="auth-button" style="background-color: #e53637; color: white; padding: 8px 15px; border-radius: 5px; margin-left: 15px; font-weight: 600; transition: all 0.3s; display: inline-block;">
+                            <i class="fa fa-sign-in-alt"></i> Connexion
+                        </a>
+                    {% endif %}
+                    
+                </div>
+            </div>
+            <div id="mobile-menu-wrap"></div>
+        </div>
+    </header>
+    <!-- Header End -->
+
+    <div class="main-content">
+        {% block hero %}{% endblock %}
+
+        <div class="container my-3">
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label == 'error' ? 'danger' : label }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+
         {% block body %}{% endblock %}
-    </body>
+    </div>
+
+    <!-- Footer Begin -->
+    <footer class="footer">
+        <div class="page-up">
+            <a href="#" id="scrollToTopButton"><span class="arrow_carrot-up"></span></a>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3">
+                    <div class="footer__logo">
+                        <a href="{{ path('home') }}"><img src="/img/logo.png" alt=""></a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="footer__nav">
+                        <ul>
+                            <li class="{% if app.request.attributes.get('_route') == 'home' %}active{% endif %}">
+                                <a href="{{ path('home') }}">Homepage</a>
+                            </li>
+                            <li><a href="#">Categories</a></li>
+                            <li><a href="#">Our Blog</a></li>
+                            <li><a href="{{ path('app_genre_index') }}">Contacts</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <p>
+                        Copyright ©<script>document.write(new Date().getFullYear());</script>
+                        All rights reserved | Made with <i class="fa fa-heart"></i> by Oumayma & Sahar
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Footer End -->
+
+    <!-- Search model Begin -->
+    <div class="search-model">
+        <div class="h-100 d-flex align-items-center justify-content-center">
+            <div class="search-close-switch"><i class="icon_close"></i></div>
+            <form class="search-model-form">
+                <input type="text" id="search-input" placeholder="Search here.....">
+            </form>
+        </div>
+    </div>
+    <!-- Search model end -->
+
+    <!-- JS -->
+    <script src="/js/jquery-3.3.1.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/player.js"></script>
+    <script src="/js/jquery.nice-select.min.js"></script>
+    <script src="/js/mixitup.min.js"></script>
+    <script src="/js/jquery.slicknav.js"></script>
+    <script src="/js/owl.carousel.min.js"></script>
+    <script src="/js/main.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const roleIcon = document.getElementById('role-icon');
+            if (roleIcon) {
+                roleIcon.addEventListener('click', function () {
+                    Swal.fire({
+                        title: '🌸 Hey!',
+                        text: "T7eb tkhalina ? 😢",
+                        icon: 'question',
+                        background: '#fff url(https://media.tenor.com/tB2V4xQXExYAAAAC/anime-kawaii.gif)',
+                        backdrop: `
+                            rgba(0,0,123,0.4)
+                            url("https://media.tenor.com/5EVaZ2EAGX4AAAAd/anime-wave.gif")
+                            top left
+                            no-repeat
+                        `,
+                        showCancelButton: true,
+                        confirmButtonText: 'Alah Ghaleb',
+                        cancelButtonText: 'La, nb9a chweya',
+                        confirmButtonColor: '#e53637',
+                        cancelButtonColor: '#3d3d3d',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: '😢 Tabtach!',
+                                text: 'Bye Bye...',
+                                icon: 'success',
+                                background: '#fff url(https://media.tenor.com/ZC4aQ5AOBY4AAAAd/anime-sad.gif)',
+                                confirmButtonColor: '#e53637'
+                            }).then(() => {
+                                window.location.href = "{{ path('app_logout') }}";
+                            });
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+
+    {% block javascripts %}{% endblock %}
+</body>
+
 </html>

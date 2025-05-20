@@ -1,0 +1,98 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Bibliothèque d'anime{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .export-btn {
+        background: linear-gradient(135deg, #4a5568, #2d3748);
+        color: #e0e0e0;
+        border: 1px solid rgba(85, 90, 155, 0.6);
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .export-btn:hover {
+        background: linear-gradient(135deg, #e53637, #c62a2a);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(229, 54, 55, 0.3);
+        color: #fff;
+        text-decoration: none;
+    }
+    
+    .export-btn i {
+        margin-right: 10px;
+        font-size: 1.1rem;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<section class="product spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="section-title">
+                    <h4>Anime Management</h4>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-4 d-flex justify-content-between align-items-center">
+            
+            <div>
+                {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('app_anime_new') }}" class="primary-btn">Créer un nouvel anime <span class="arrow_right"></span></a>
+                  {% endif %}
+            </div>
+          
+            <div>
+                <a href="{{ path('app_export_anime_list') }}" class="export-btn">
+                    <i class="fa fa-file-excel"></i> Exporter en Excel
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for anime in animes %}
+            <div class="col-lg-4 col-md-6 col-sm-6">
+                <div class="product__item" style="margin-bottom: 30px;">
+                    <div class="product__item__pic set-bg" data-setbg="{{ anime.image }}" style="background-image: url('{{ anime.image }}'); height: 325px; background-size: cover; background-position: center;">
+                        <div class="ep">{{ anime.statut }}</div>
+                        <div class="view"><i class="fa fa-eye"></i> {% if anime.genre_id is defined and anime.genre_id is not null %}{{ anime.genre_id.name }}{% else %}Non catégorisé{% endif %}</div>
+                        <div class="comment"><i class="fa fa-calendar"></i> {{ anime.age }}</div>
+                    </div>
+                    <div class="product__item__text">
+                        <ul>
+                            <li>{% if anime.genre_id is defined and anime.genre_id is not null %}{{ anime.genre_id.name }}{% else %}Non catégorisé{% endif %}</li>
+                            <li>{{ anime.age }}+</li>
+                        </ul>
+                        <h5><a href="{{ path('app_anime_show', {'id': anime.id}) }}">{{ anime.name }}</a></h5>
+                        
+                        <div class="anime-actions" style="margin-top: 15px;">
+                            <a href="{{ path('app_anime_show', {'id': anime.id}) }}" class="btn btn-sm" style="background-color: #e53637; color: white; margin-right: 5px;"><i class="fa fa-eye"></i> View</a>
+                            {% if is_granted('ROLE_ADMIN') %}
+                            <a href="{{ path('app_anime_edit', {'id': anime.id}) }}" class="btn btn-sm" style="background-color: #3d3d3d; color: white;"><i class="fa fa-edit"></i> Edit</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12">
+                <div class="alert" style="background-color: #3d3d3d; color: white; padding: 20px; text-align: center;">
+                    <p>No animes found in the database. <a href="{{ path('app_anime_new') }}" style="color: #e53637;">Create your first anime!</a></p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

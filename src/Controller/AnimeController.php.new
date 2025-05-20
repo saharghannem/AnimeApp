@@ -1,0 +1,281 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\Anime;
+use App\Entity\Genre;
+use App\Form\AnimeType;
+use App\Repository\AnimeRepository;
+use App\Repository\GenreRepository;
+use App\Service\BrevoEmailService;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
+
+#[Route('/anime')]
+final class AnimeController extends AbstractController
+{
+    #[Route('/', name: 'app_anime_index', methods: ['GET'])]
+    public function index(EntityManagerInterface $entityManager): Response
+    {
+        $animes = $entityManager->getRepository(Anime::class)->findAll();
+        
+        // Vérification des données - Correction des relations manquantes
+        $defaultGenre = $this->getOrCreateDefaultGenre($entityManager);
+        foreach ($animes as $anime) {
+            try {
+                // Essayez d'accéder au genre pour voir s'il existe
+                // Si une exception est levée, cela signifie que le genre n'existe pas
+                $genreCheck = $anime->getGenre_id() ? $anime->getGenre_id()->getName() : null;
+            } catch (\Exception $e) {
+                // Corriger l'anime avec un genre valide
+                $anime->setGenre_id($defaultGenre);
+                $entityManager->persist($anime);
+            }
+        }
+        
+        // Sauvegarder les corrections
+        $entityManager->flush();
+
+        return $this->render('anime/index.html.twig', [
+            'animes' => $animes,
+        ]);
+    }
+
+    #[Route('/new', name: 'app_anime_new', methods: ['GET', 'POST'])]
+    public function new(Request $request, EntityManagerInterface $entityManager, BrevoEmailService $emailService): Response
+    {
+        $anime = new Anime();
+        // Initialiser les propriétés
+        $anime->setName('');
+        $anime->setDescrition('');
+        $anime->setStatut('');
+        $anime->setTrailerurl('');
+        $anime->setImage('/img/default-anime.jpg'); // Valeur par défaut pour l'image
+        
+        // Trouver ou créer un genre par défaut
+        $defaultGenre = $this->getOrCreateDefaultGenre($entityManager);
+        $anime->setGenre_id($defaultGenre);
+        
+        $anime->setAge('');
+        
+        // Gestion du formulaire personnalisé
+        $form = $this->createForm(AnimeType::class, $anime);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($anime);
+            $entityManager->flush();
+            
+            // Envoyer une notification par email via Brevo
+            $genreName = $anime->getGenre_id() ? $anime->getGenre_id()->getName() : 'Non catégorisé';
+            $emailService->sendAnimeCreationNotification(
+                $anime->getName(),
+                $anime->getId(),
+                $genreName,
+                $anime->getImage()
+            );
+
+            return $this->redirectToRoute('app_anime_index', [], Response::HTTP_SEE_OTHER);
+        }
+
+        return $this->renderForm('anime/new.html.twig', [
+            'anime' => $anime,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/new-custom', name: 'app_anime_new_custom', methods: ['GET', 'POST'])]
+    public function customNew(Request $request, EntityManagerInterface $entityManager, BrevoEmailService $emailService): Response
+    {
+        $anime = new Anime();
+        $genres = $entityManager->getRepository(Genre::class)->findAll();
+        
+        if ($request->isMethod('POST')) {
+            $anime->setName($request->request->get('name'));
+            $anime->setDescrition($request->request->get('descrition'));
+            $anime->setStatut($request->request->get('statut'));
+            $anime->setTrailerurl($request->request->get('trailerurl'));
+            
+            // Traitement de l'upload d'image
+            $imageFile = $request->files->get('imageFile');
+            if ($imageFile) {
+                // Générer un nom de fichier unique pour éviter les collisions
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $this->slugify($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$imageFile->guessExtension();
+
+                // Déplacer le fichier dans le répertoire où les images sont stockées
+                try {
+                    // S'assurer que le répertoire d'images existe
+                    $uploadsDir = $this->getParameter('kernel.project_dir').'/public/uploads/animes';
+                    if (!file_exists($uploadsDir)) {
+                        mkdir($uploadsDir, 0777, true);
+                    }
+                    
+                    $imageFile->move(
+                        $uploadsDir,
+                        $newFilename
+                    );
+                    
+                    // Mettre à jour l'entité avec le chemin de l'image
+                    $anime->setImage('/uploads/animes/'.$newFilename);
+                } catch (\Exception $e) {
+                    // En cas d'erreur, utiliser une image par défaut
+                    $anime->setImage('/img/default-anime.jpg');
+                }
+            } else {
+                // Si aucune image n'est téléchargée, utiliser une image par défaut
+                $anime->setImage('/img/default-anime.jpg');
+            }
+            // Récupérer l'entité Genre sélectionnée
+            $genreId = $request->request->get('genre_id');
+            if ($genreId) {
+                $genre = $entityManager->getRepository(Genre::class)->find($genreId);
+                if ($genre) {
+                    $anime->setGenre_id($genre);
+                }
+            }
+            $anime->setAge($request->request->get('age'));
+            
+            // Validation personnalisée
+            $errors = [];
+            if (empty($anime->getName())) {
+                $errors[] = 'Le nom ne peut pas être vide';
+            }
+            if (empty($anime->getDescrition())) {
+                $errors[] = 'La description ne peut pas être vide';
+            }
+            
+            // Si pas d'erreurs, sauvegarder
+            if (empty($errors)) {
+                $entityManager->persist($anime);
+                $entityManager->flush();
+                
+                // Envoyer une notification par email via Brevo
+                $genreName = $anime->getGenre_id() ? $anime->getGenre_id()->getName() : 'Non catégorisé';
+                $emailService->sendAnimeCreationNotification(
+                    $anime->getName(),
+                    $anime->getId(),
+                    $genreName,
+                    $anime->getImage()
+                );
+                
+                return $this->redirectToRoute('app_anime_index');
+            }
+            
+            // S'il y a des erreurs, les passer au template
+            return $this->render('anime/new_custom.html.twig', [
+                'anime' => $anime,
+                'genres' => $genres,
+                'errors' => $errors,
+            ]);
+        }
+        
+        return $this->render('anime/new_custom.html.twig', [
+            'anime' => $anime,
+            'genres' => $genres,
+            'errors' => [],
+        ]);
+    }
+
+    #[Route('/{id}', name: 'app_anime_show', methods: ['GET'])]
+    public function show(Anime $anime): Response
+    {
+        return $this->render('anime/show.html.twig', [
+            'anime' => $anime,
+        ]);
+    }
+
+    #[Route('/{id}/edit', name: 'app_anime_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, Anime $anime, EntityManagerInterface $entityManager): Response
+    {
+        // S'assurer que le genre est défini
+        if ($anime->getGenre_id() === null) {
+            $defaultGenre = $this->getOrCreateDefaultGenre($entityManager);
+            $anime->setGenre_id($defaultGenre);
+        }
+        
+        $form = $this->createForm(AnimeType::class, $anime);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+
+            return $this->redirectToRoute('app_anime_index', [], Response::HTTP_SEE_OTHER);
+        }
+
+        return $this->renderForm('anime/edit.html.twig', [
+            'anime' => $anime,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/{id}', name: 'app_anime_delete', methods: ['POST'])]
+    public function delete(Request $request, Anime $anime, EntityManagerInterface $entityManager): Response
+    {
+        if ($this->isCsrfTokenValid('delete'.$anime->getId(), $request->request->get('_token'))) {
+            $entityManager->remove($anime);
+            $entityManager->flush();
+        }
+
+        return $this->redirectToRoute('app_anime_index', [], Response::HTTP_SEE_OTHER);
+    }
+    
+    /**
+     * Méthode utilitaire pour obtenir un genre existant ou en créer un par défaut
+     */
+    private function getOrCreateDefaultGenre(EntityManagerInterface $entityManager): Genre
+    {
+        $genreRepository = $entityManager->getRepository(Genre::class);
+        
+        // Essayer de trouver un genre existant
+        $defaultGenre = $genreRepository->findOneBy([]);
+        
+        // Si aucun genre n'existe, en créer un par défaut
+        if (!$defaultGenre) {
+            $defaultGenre = new Genre();
+            $defaultGenre->setName('Animation');
+            $defaultGenre->setDescrition('Genre par défaut pour tous les animes');
+            
+            $entityManager->persist($defaultGenre);
+            $entityManager->flush();
+        }
+        
+        return $defaultGenre;
+    }
+    
+    /**
+     * Crée une version "slugifiée" d'une chaîne (sans accents, espaces remplacés par des tirets, etc.)
+     */
+    private function slugify(string $text): string
+    {
+        // Remplacer les caractères non alphanumériques par un tiret
+        $text = preg_replace('~[^\pL\d]+~u', '-', $text);
+        
+        // Translitérer
+        $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
+        
+        // Supprimer les caractères indésirables
+        $text = preg_replace('~[^-\w]+~', '', $text);
+        
+        // Trim
+        $text = trim($text, '-');
+        
+        // Supprimer les tirets dupliqués
+        $text = preg_replace('~-+~', '-', $text);
+        
+        // Convertir en minuscules
+        $text = strtolower($text);
+        
+        if (empty($text)) {
+            return 'n-a';
+        }
+        
+        return $text;
+    }
+}

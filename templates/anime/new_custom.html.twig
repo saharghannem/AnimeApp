@@ -1,0 +1,192 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Anime{% endblock %}
+
+{% block stylesheets %}
+<style>
+    /* Styles pour la page de création d'anime */
+    .main-content {
+        background-color: #0b0c2a;
+        padding: 60px 0;
+        min-height: calc(100vh - 300px);
+    }
+    
+    /* Style pour le titre */
+    h1 {
+        color: #e53637;
+        font-weight: 700;
+        margin-bottom: 35px;
+        text-align: center;
+        font-family: 'Oswald', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    /* Styles pour le formulaire */
+    .anime-form {
+        background-color: #1c1c3a;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    /* Styles pour les champs de formulaire */
+    .form-control-styled {
+        background-color: #070720;
+        border: 1px solid #2c2c5c;
+        color: #ffffff;
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        width: 100%;
+    }
+    
+    /* Style spécial pour les options des listes déroulantes */
+    select.form-control-styled option {
+        background-color: #1c1c3a;
+        color: #3498db; /* Bleu */
+        padding: 10px;
+        font-weight: bold;
+    }
+    
+    .form-control-styled:focus {
+        border-color: #e53637;
+        outline: none;
+        box-shadow: 0 0 0 0.2rem rgba(229, 54, 55, 0.25);
+    }
+    
+    .form-label {
+        color: #fff;
+        margin-bottom: 8px;
+        display: block;
+        font-weight: 500;
+    }
+    
+    /* Styles pour les erreurs */
+    .errors {
+        background-color: rgba(229, 54, 55, 0.2);
+        color: #e53637;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        border: 1px solid #e53637;
+    }
+    
+    /* Style pour le bouton */
+    .btn-anime {
+        background-color: #e53637;
+        color: white;
+        padding: 10px 25px;
+        border: none;
+        border-radius: 5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        display: block;
+        margin: 0 auto;
+    }
+    
+    .btn-anime:hover {
+        background-color: #fff;
+        color: #e53637;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(229, 54, 55, 0.4);
+    }
+    
+    /* Style pour le lien de retour */
+    a {
+        display: inline-block;
+        margin-top: 20px;
+        color: #fff;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    a:hover {
+        color: #e53637;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+    <div class="main-content">
+        <div class="container">
+            <h1>Create new Anime</h1>
+            
+            {% if errors|length > 0 %}
+                <div class="errors">
+                    <ul>
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            
+            <form method="post" class="anime-form" enctype="multipart/form-data" novalidate>
+                <div class="mb-3">
+                    <label for="name" class="form-label">Nom</label>
+                    <input type="text" id="name" name="name" class="form-control-styled" value="{{ anime.name ?? '' }}" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="descrition" class="form-label">Description</label>
+                    <textarea id="descrition" name="descrition" class="form-control-styled" rows="5" required>{{ anime.descrition ?? '' }}</textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="statut" class="form-label">Statut</label>
+                    <select id="statut" name="statut" class="form-control-styled" required>
+                        <option value="">Choisissez un statut</option>
+                        <option value="open" {% if anime.statut == 'open' %}selected{% endif %}>Open</option>
+                        <option value="in-progress" {% if anime.statut == 'in-progress' %}selected{% endif %}>In Progress</option>
+                        <option value="resolved" {% if anime.statut == 'resolved' %}selected{% endif %}>Resolved</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="trailerurl" class="form-label">URL de la bande-annonce</label>
+                    <input type="url" id="trailerurl" name="trailerurl" class="form-control-styled" value="{{ anime.trailerurl ?? '' }}">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="imageFile" class="form-label">Image de l'anime</label>
+                    <input type="file" id="imageFile" name="imageFile" class="form-control-styled" accept="image/jpeg,image/png,image/gif">
+                    <small class="text-info">Sélectionnez une image pour cet anime (JPG, PNG, GIF - max 1Mo)</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="genre_id" class="form-label">Genre</label>
+                    <select id="genre_id" name="genre_id" class="form-control-styled" required>
+                        <option value="">Choisissez un genre</option>
+                        {% for genre in genres %}
+                            <option value="{{ genre.id }}" {% if anime.genre_id and anime.genre_id.id == genre.id %}selected{% endif %}>{{ genre.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="age" class="form-label">Classification d'âge</label>
+                    <select id="age" name="age" class="form-control-styled" required>
+                        <option value="">Choisissez une classification</option>
+                        <option value="Tous publics" {% if anime.age == 'Tous publics' %}selected{% endif %}>Tous publics</option>
+                        <option value="7+" {% if anime.age == '7+' %}selected{% endif %}>7+</option>
+                        <option value="12+" {% if anime.age == '12+' %}selected{% endif %}>12+</option>
+                        <option value="16+" {% if anime.age == '16+' %}selected{% endif %}>16+</option>
+                        <option value="18+" {% if anime.age == '18+' %}selected{% endif %}>18+</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn-anime">Enregistrer</button>
+            </form>
+            
+            <div class="text-center">
+                <a href="{{ path('app_anime_index') }}">Retour à la liste</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,282 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Résultats du Quiz{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .result-container {
+        background-color: #0b0c2a;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
+        margin-bottom: 50px;
+        border: 1px solid rgba(85, 90, 155, 0.4);
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+    }
+    
+    .result-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(to right, #e53637, rgba(229, 54, 55, 0.2));
+        z-index: 2;
+    }
+    
+    .result-title {
+        color: #e0e0e0;
+        margin-bottom: 40px;
+        font-weight: 700;
+        position: relative;
+        display: inline-block;
+        font-size: 2.2rem;
+        letter-spacing: 1px;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+    
+    .result-title:after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -12px;
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(to right, #e53637, rgba(229, 54, 55, 0.2));
+        border-radius: 2px;
+    }
+    
+    .score-container {
+        margin: 50px auto;
+        max-width: 300px;
+        position: relative;
+    }
+    
+    .score-circle {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(11, 12, 42, 0.9), rgba(20, 22, 60, 0.9));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        margin: 0 auto;
+        border: 5px solid rgba(85, 90, 155, 0.4);
+    }
+    
+    .score-circle::before {
+        content: '';
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        border-radius: 50%;
+        background: conic-gradient(
+            #e53637 0%, 
+            #e53637 calc(var(--percentage) * 1%), 
+            transparent calc(var(--percentage) * 1%), 
+            transparent 100%
+        );
+        mask: radial-gradient(transparent 71%, #fff 71%);
+        -webkit-mask: radial-gradient(transparent 71%, #fff 71%);
+    }
+    
+    .score-value {
+        font-size: 4rem;
+        font-weight: 700;
+        color: #e0e0e0;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .score-total {
+        position: absolute;
+        bottom: 50px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        color: #8c9fc5;
+        font-size: 1.2rem;
+    }
+    
+    .result-message {
+        margin: 30px 0;
+        padding: 20px;
+        border-radius: 12px;
+        background-color: rgba(20, 22, 60, 0.7);
+        color: #e0e0e0;
+        font-size: 1.2rem;
+        border: 1px solid rgba(85, 90, 155, 0.4);
+    }
+    
+    .result-excellent {
+        border-left: 5px solid #4CAF50;
+    }
+    
+    .result-good {
+        border-left: 5px solid #2196F3;
+    }
+    
+    .result-average {
+        border-left: 5px solid #FF9800;
+    }
+    
+    .result-poor {
+        border-left: 5px solid #e53637;
+    }
+    
+    .result-actions {
+        margin-top: 40px;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+    
+    .btn-result {
+        background: linear-gradient(135deg, #e53637, #d62f2f);
+        color: #f0f0f0;
+        border: none;
+        padding: 14px 32px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.4s;
+        box-shadow: 0 4px 20px rgba(229, 54, 55, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    
+    .btn-result:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(229, 54, 55, 0.5);
+        background: linear-gradient(135deg, #f04e4e, #e53637);
+        color: white;
+    }
+    
+    .btn-result-secondary {
+        background: linear-gradient(135deg, #3d3d3d, #2a2a2a);
+    }
+    
+    .btn-result-secondary:hover {
+        background: linear-gradient(135deg, #4d4d4d, #3a3a3a);
+    }
+    
+    .btn-result i {
+        margin-right: 10px;
+    }
+    
+    @media (max-width: 768px) {
+        .result-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<section class="product spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="section-title">
+                    <h4>Résultats du Quiz</h4>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="result-container">
+                    <h2 class="result-title">Vos résultats</h2>
+                    
+                    {% set percentage = (score / total_questions) * 100 %}
+                    
+                    <h2 class="result-title">Votre score</h2>
+                    
+                    <div class="score-container" style="--percentage: {{ (score / total_questions) * 100 }}">
+                        <div class="score-circle">
+                            <div class="score-value">{{ score }}</div>
+                        </div>
+                        <div class="score-total">sur {{ total_questions }}</div>
+                    </div>
+                    
+                    {% set percentage = (score / total_questions) * 100 %}
+                    {% if percentage >= 80 %}
+                        <div class="result-message result-excellent">
+                            {% if quiz_type == 'genres' %}
+                                Excellent ! Vous êtes un véritable expert des genres d'animes. Votre culture est impressionnante !
+                            {% elseif quiz_type == 'ages' %}
+                                Bravo ! Vous connaissez parfaitement les classifications d'âge des animes. Un vrai professionnel !
+                            {% elseif quiz_type == 'statuts' %}
+                                Impressionnant ! Vous êtes à jour sur les statuts de diffusion des animes. Un vrai passionné !
+                            {% else %}
+                                Excellent ! Vous êtes un véritable connaisseur d'animes. Votre culture est impressionnante !
+                            {% endif %}
+                        </div>
+                    {% elseif percentage >= 60 %}
+                        <div class="result-message result-good">
+                            {% if quiz_type == 'genres' %}
+                                Bien joué ! Vous avez une bonne connaissance des genres d'animes. Continuez comme ça !
+                            {% elseif quiz_type == 'ages' %}
+                                Très bien ! Vous connaissez bien les classifications d'âge des animes. Continuez à apprendre !
+                            {% elseif quiz_type == 'statuts' %}
+                                Bien joué ! Vous suivez bien l'actualité des animes et leurs statuts. Belle performance !
+                            {% else %}
+                                Bien joué ! Vous avez de bonnes connaissances sur les animes. Continuez comme ça !
+                            {% endif %}
+                        </div>
+                    {% elseif percentage >= 40 %}
+                        <div class="result-message result-average">
+                            {% if quiz_type == 'genres' %}
+                                Pas mal. Vous avez des connaissances de base sur les genres d'animes. Continuez à explorer !
+                            {% elseif quiz_type == 'ages' %}
+                                Moyen. Vous avez quelques notions sur les classifications d'âge. Il y a encore à apprendre !
+                            {% elseif quiz_type == 'statuts' %}
+                                Pas mal. Vous connaissez quelques statuts d'animes. Continuez à suivre l'actualité anime !
+                            {% else %}
+                                Pas mal. Vous avez des connaissances de base sur les animes. Continuez à explorer !
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="result-message result-poor">
+                            {% if quiz_type == 'genres' %}
+                                Vous avez encore beaucoup à apprendre sur les genres d'animes. Ne vous découragez pas !
+                            {% elseif quiz_type == 'ages' %}
+                                Les classifications d'âge semblent vous poser problème. Continuez à vous familiariser avec elles !
+                            {% elseif quiz_type == 'statuts' %}
+                                Vous avez du mal à identifier les statuts des animes. Continuez à explorer notre catalogue !
+                            {% else %}
+                                Vous avez encore beaucoup à découvrir sur le monde des animes. Ne vous découragez pas !
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="result-actions">
+                        <a href="{{ path('app_quiz_index', {'type': quiz_type}) }}" class="btn-result">
+                            <i class="fa fa-redo"></i> Refaire le quiz
+                        </a>
+                        <a href="{{ path('app_quiz_leaderboard', {'type': quiz_type}) }}" class="btn-result btn-result-primary">
+                            <i class="fa fa-trophy"></i> Tableau des scores
+                        </a>
+                        <a href="{{ path('app_anime_index') }}" class="btn-result btn-result-secondary">
+                            <i class="fa fa-list"></i> Liste des animes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

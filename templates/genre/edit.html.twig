@@ -1,0 +1,114 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit {{ genre.name }}{% endblock %}
+
+{% block stylesheets %}
+<style>
+    /* Styles pour la page d'édition de genre */
+    .genre-edit-section {
+        padding: 50px 0;
+        background-color: #0b0c2a;
+        min-height: calc(100vh - 300px);
+    }
+    
+    .genre-edit-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .genre-edit-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .genre-edit-header h1 {
+        color: #e53637;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-family: 'Oswald', sans-serif;
+        letter-spacing: 1px;
+    }
+    
+    .genre-edit-card {
+        background-color: #1c1c3a;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        margin-bottom: 25px;
+    }
+    
+    /* Style pour les boutons d'action */
+    .genre-edit-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .back-button {
+        color: #b7b7b7;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .back-button i {
+        margin-right: 5px;
+    }
+    
+    .back-button:hover {
+        color: #e53637;
+        transform: translateX(-3px);
+    }
+    
+    /* Style pour le formulaire de suppression */
+    .delete-section {
+        background-color: #1c1c3a;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        text-align: center;
+    }
+    
+    .delete-title {
+        color: #e53637;
+        font-weight: 600;
+        margin-bottom: 15px;
+        font-size: 16px;
+    }
+    
+    .delete-warning {
+        color: #b7b7b7;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<section class="genre-edit-section">
+    <div class="container">
+        <div class="genre-edit-container">
+            <div class="genre-edit-header">
+                <h1>Edit {{ genre.name }}</h1>
+            </div>
+            
+            <div class="genre-edit-card">
+                {{ include('genre/_form.html.twig', {'button_label': 'Update'}) }}
+                
+                <div class="genre-edit-actions mt-4">
+                    <a href="{{ path('app_genre_index') }}" class="back-button">
+                        <i class="fa fa-arrow-left"></i> Back to list
+                    </a>
+                </div>
+            </div>
+            
+            <div class="delete-section">
+                <div class="delete-title">Danger Zone</div>
+                <div class="delete-warning">This action cannot be undone. Please be certain.</div>
+                {{ include('genre/_delete_form.html.twig') }}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

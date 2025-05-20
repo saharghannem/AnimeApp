@@ -1,0 +1,6 @@
+<form method="post" action="{{ path('app_anime_delete', {'id': anime.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet anime?');">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ anime.id) }}">
+    <button class="{{ button_class|default('btn btn-danger') }}" style="background-color: #721c24; color: white; border: none; padding: 10px 25px; cursor: pointer; border-radius: 4px; font-weight: 600; transition: all 0.3s;">
+        <i class="fa fa-trash"></i> Supprimer
+    </button>
+</form>

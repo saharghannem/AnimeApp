@@ -1,0 +1,417 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Anime{% endblock %}
+
+{% block stylesheets %}
+<style>
+    /* Styles pour la page de création d'anime */
+    .main-content {
+        background-color: #0b0c2a;
+        padding: 60px 0;
+        min-height: calc(100vh - 300px);
+    }
+    
+    /* Style pour le titre */
+    h1 {
+        color: #e53637;
+        font-weight: 700;
+        margin-bottom: 35px;
+        text-align: center;
+        font-family: 'Oswald', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    /* Formulaire professionnel */
+    .anime-form {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .professional-form-container {
+        background-color: #151c3a;
+        border-radius: 10px;
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Styles d'en-tête du formulaire */
+    .card-header {
+        background: linear-gradient(to right, #1d2252, #1a1d3d);
+        padding: 20px 25px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+    }
+    
+    .header-icon {
+        background-color: #e53637;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        box-shadow: 0 3px 10px rgba(229, 54, 55, 0.3);
+    }
+    
+    .header-icon i {
+        color: #fff;
+        font-size: 18px;
+    }
+    
+    .card-header h3 {
+        color: #e0e0e0;
+        margin: 0;
+        font-size: 20px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Corps du formulaire */
+    .card-body {
+        padding: 30px;
+    }
+    
+    /* Groupe de formulaire */
+    .form-group {
+        margin-bottom: 25px;
+        position: relative;
+    }
+    
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+    
+    /* Disposition en ligne */
+    .form-row {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 -10px 25px;
+    }
+    
+    .form-row .form-group {
+        margin-bottom: 0;
+        padding: 0 10px;
+    }
+    
+    .form-group.half {
+        width: 50%;
+    }
+    
+    @media (max-width: 768px) {
+        .form-group.half {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .form-row .form-group:last-child {
+            margin-bottom: 0;
+        }
+    }
+    
+    /* Labels et champs */
+    .field-label {
+        color: #8c9fc5;
+        margin-bottom: 8px;
+        font-weight: 500;
+        font-size: 15px;
+    }
+    
+    .field-error {
+        color: #ff6b6b;
+        font-size: 13px;
+        margin-top: 5px;
+        min-height: 18px;
+    }
+    
+    .form-control-pro {
+        width: 100%;
+        background-color: rgba(11, 12, 42, 0.8);
+        border: 1px solid rgba(85, 90, 155, 0.4);
+        border-radius: 6px;
+        padding: 12px 15px;
+        color: #d0d0d0;
+        transition: all 0.3s;
+        outline: none;
+    }
+    
+    .form-control-pro:focus {
+        border-color: #e53637;
+        box-shadow: 0 0 0 3px rgba(229, 54, 55, 0.2);
+        background-color: rgba(20, 22, 60, 0.9);
+    }
+    
+    textarea.form-control-pro {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    /* Champ d'upload d'image */
+    .form-group.media-upload {
+        margin-top: 30px;
+    }
+    
+    .media-upload-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 10px;
+    }
+    
+    .preview-area {
+        width: 180px;
+        height: 180px;
+        background-color: rgba(11, 12, 42, 0.8);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px dashed rgba(85, 90, 155, 0.5);
+        transition: all 0.3s;
+        overflow: hidden;
+    }
+    
+    .preview-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: rgba(140, 159, 197, 0.7);
+    }
+    
+    .preview-placeholder i {
+        font-size: 36px;
+        margin-bottom: 10px;
+        color: rgba(229, 54, 55, 0.5);
+    }
+    
+    .upload-area {
+        flex: 1;
+        min-width: 250px;
+    }
+    
+    .upload-info {
+        margin-top: 10px;
+        color: rgba(140, 159, 197, 0.8);
+        font-size: 13px;
+    }
+    
+    /* Pied de formulaire */
+    .card-footer {
+        background-color: rgba(0, 0, 0, 0.2);
+        padding: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        text-align: right;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, #e53637, #d62f2f);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 10px rgba(229, 54, 55, 0.3);
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .btn-submit i {
+        margin-right: 8px;
+    }
+    
+    .btn-submit:hover {
+        background: linear-gradient(135deg, #f04e4e, #e53637);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(229, 54, 55, 0.4);
+    }
+    
+    /* Styles pour le conteneur d'upload */
+    .upload-container {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
+    
+    .upload-preview {
+        width: 150px;
+        height: 150px;
+        border-radius: 8px;
+        background-color: rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        overflow: hidden;
+        border: 1px dashed rgba(255, 255, 255, 0.2);
+        transition: all 0.3s;
+    }
+    
+    .upload-preview:hover {
+        border-color: rgba(229, 54, 55, 0.5);
+    }
+    
+    .default-preview-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .preview-icon {
+        font-size: 36px;
+        margin-bottom: 10px;
+        color: rgba(229, 54, 55, 0.7);
+    }
+    
+    .upload-form-group {
+        flex-grow: 1;
+    }
+    
+    .format-info {
+        display: block;
+        margin-top: 8px;
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    /* Styles pour le bouton d'envoi */
+    .form-actions {
+        text-align: center;
+        margin-top: 30px;
+    }
+    
+    .btn-anime {
+        background: linear-gradient(135deg, #e53637, #d62f2f);
+        color: #ffffff;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(229, 54, 55, 0.3);
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+    
+    .btn-anime::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #ff4444, #e53637);
+        transition: all 0.4s;
+        z-index: -1;
+    }
+    
+    .btn-anime:hover::before {
+        left: 0;
+    }
+    
+    .btn-anime:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 7px 20px rgba(229, 54, 55, 0.4);
+    }
+        margin: 0 auto;
+    }
+    
+    /* Styles pour les champs de formulaire */
+    .form-control-styled,
+    .form-control-styled input,
+    .form-control-styled select,
+    .form-control-styled textarea {
+        background-color: #070720;
+        border: 1px solid #2c2c5c;
+        color: #ffffff;
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        width: 100%;
+    }
+    
+    .form-control-styled input:focus,
+    .form-control-styled select:focus,
+    .form-control-styled textarea:focus {
+        border-color: #e53637;
+        outline: none;
+        box-shadow: 0 0 0 0.2rem rgba(229, 54, 55, 0.25);
+    }
+    
+    .form-control-styled label {
+        color: #fff;
+        margin-bottom: 8px;
+        display: block;
+        font-weight: 500;
+    }
+    
+    /* Style pour le bouton */
+    .btn-anime {
+        background-color: #e53637;
+        color: white;
+        padding: 10px 25px;
+        border: none;
+        border-radius: 5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        display: block;
+        margin: 0 auto;
+    }
+    
+    .btn-anime:hover {
+        background-color: #fff;
+        color: #e53637;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(229, 54, 55, 0.4);
+    }
+    
+    /* Style pour le lien de retour */
+    a {
+        display: inline-block;
+        margin-top: 20px;
+        color: #fff;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    a:hover {
+        color: #e53637;
+        text-decoration: none;
+    }
+    
+    /* Fix pour les options des menus déroulants */
+    select.form-control-styled option {
+        background-color: #1c1c3a;
+        color: #3498db; /* Bleu */
+        padding: 10px;
+        font-weight: bold;
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .main-content {
+        animation: fadeIn 0.6s ease-out;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+    <h1>Create new Anime</h1>
+
+    {{ include('anime/_form.html.twig') }}
+
+    <a href="{{ path('app_anime_index') }}">back to list</a>
+{% endblock %}

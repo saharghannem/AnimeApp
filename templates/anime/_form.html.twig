@@ -1,0 +1,121 @@
+{{ form_start(form, {'attr': {'class': 'anime-form', 'novalidate': 'novalidate'}, 'method': 'POST'}) }}
+
+<div class="professional-form-container">
+    <div class="card-header">
+        <div class="header-icon"><i class="fa fa-info-circle"></i></div>
+        <h3>Informations de l'anime</h3>
+    </div>
+    
+    <div class="card-body">
+        <!-- Champs basiques -->
+        <div class="form-group">
+            <div class="field-label">{{ form_label(form.name) }}</div>
+            <div class="field-input">{{ form_widget(form.name, {'attr': {'class': 'form-control-pro', 'placeholder': 'Entrez le nom de l\'anime'}}) }}</div>
+            <div class="field-error">{{ form_errors(form.name) }}</div>
+        </div>
+
+        <div class="form-group">
+            <div class="field-label">{{ form_label(form.descrition) }}</div>
+            <div class="field-input">{{ form_widget(form.descrition, {'attr': {'class': 'form-control-pro', 'placeholder': 'Description de l\'anime', 'rows': 3}}) }}</div>
+            <div class="field-error">{{ form_errors(form.descrition) }}</div>
+        </div>
+
+        <!-- Classification -->
+        <div class="form-row">
+            <div class="form-group half">
+                <div class="field-label">{{ form_label(form.genre) }}</div>
+                <div class="field-input">{{ form_widget(form.genre, {'attr': {'class': 'form-control-pro'}}) }}</div>
+                <div class="field-error">{{ form_errors(form.genre) }}</div>
+            </div>
+            
+            <div class="form-group half">
+                <div class="field-label">{{ form_label(form.age) }}</div>
+                <div class="field-input">{{ form_widget(form.age, {'attr': {'class': 'form-control-pro'}}) }}</div>
+                <div class="field-error">{{ form_errors(form.age) }}</div>
+            </div>
+        </div>
+        
+        <!-- Statut et URL -->
+        <div class="form-row">
+            <div class="form-group half">
+                <div class="field-label">{{ form_label(form.statut) }}</div>
+                <div class="field-input">{{ form_widget(form.statut, {'attr': {'class': 'form-control-pro'}}) }}</div>
+                <div class="field-error">{{ form_errors(form.statut) }}</div>
+            </div>
+            
+            <div class="form-group half">
+                <div class="field-label">{{ form_label(form.trailerurl) }}</div>
+                <div class="field-input">{{ form_widget(form.trailerurl, {'attr': {'class': 'form-control-pro', 'placeholder': 'https://...'}}) }}</div>
+                <div class="field-error">{{ form_errors(form.trailerurl) }}</div>
+            </div>
+        </div>
+        
+        <!-- Image upload -->
+        <div class="form-group media-upload">
+            <div class="field-label">{{ form_label(form.imageFile) }}</div>
+            
+            <div class="media-upload-container">
+                <div class="preview-area" id="imagePreview">
+                    <div class="preview-placeholder">
+                        <i class="fa fa-image"></i>
+                        <span>Prévisualisation</span>
+                    </div>
+                </div>
+                
+                <div class="upload-area">
+                    <div class="field-input">
+                        {{ form_widget(form.imageFile, {'attr': {'class': 'form-control-pro file-input', 'onchange': 'previewImage(this)'}}) }}
+                    </div>
+                    <div class="upload-info">
+                        <i class="fa fa-info-circle"></i> Formats acceptés: JPG, PNG, GIF (1Mo max)
+                    </div>
+                    <div class="field-error">{{ form_errors(form.imageFile) }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-footer">
+        <button type="submit" class="btn-submit">
+            <i class="fa fa-check-circle"></i> {{ button_label|default('Enregistrer') }}
+        </button>
+    </div>
+</div>
+
+{# Ajouter manuellement le token CSRF #}
+{{ form_row(form._token) }}
+
+<div class="form-actions">
+    <button type="submit" class="btn btn-anime mt-4">
+        <i class="fa fa-save me-2"></i> {{ button_label|default('Enregistrer') }}
+    </button>
+</div>
+
+<script>
+function previewImage(input) {
+    const preview = document.getElementById('imagePreview');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            preview.innerHTML = '';
+            preview.style.backgroundImage = `url('${e.target.result}')`;
+            preview.style.backgroundSize = 'cover';
+            preview.style.backgroundPosition = 'center';
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        preview.style.backgroundImage = 'none';
+        preview.innerHTML = `
+            <div class="preview-placeholder">
+                <i class="fa fa-image"></i>
+                <span>Prévisualisation</span>
+            </div>
+        `;
+    }
+}
+</script>
+
+{{ form_end(form, {'render_rest': false}) }}

@@ -1,0 +1,144 @@
+<?php
+
+namespace App\Service;
+
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+
+class GeminiService
+{
+    private string $apiKey;
+    private HttpClientInterface $httpClient;
+    private string $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+    private GoogleSearchService $googleSearchService;
+
+    public function __construct(HttpClientInterface $httpClient, GoogleSearchService $googleSearchService, ParameterBagInterface $params)
+    {
+        // Récupération de la clé API depuis les variables d'environnement
+        $this->apiKey = $params->get('gemini_api_key');
+        $this->httpClient = $httpClient;
+        $this->googleSearchService = $googleSearchService;
+    }
+
+    /**
+     * Génère des questions de quiz sur les animes en utilisant l'API Gemini
+     */
+    public function generateQuizQuestions(array $animes, string $quizType = 'genres', int $numberOfQuestions = 5): array
+    {
+        switch ($quizType) {
+            case 'personnages':
+                return $this->generateCharacterQuizWithGoogleSearch($animes, $numberOfQuestions);
+            case 'univers':
+                return $this->generateUniverseQuizWithGoogleSearch($animes, $numberOfQuestions);
+            case 'intrigue':
+                return $this->generatePlotQuizWithGoogleSearch($animes, $numberOfQuestions);
+            case 'ages':
+                return $this->generateQuizWithGoogleSearch($animes, 'ages', $numberOfQuestions);
+            case 'statuts':
+                return $this->generateQuizWithGoogleSearch($animes, 'statuts', $numberOfQuestions);
+            case 'genres':
+            default:
+                return $this->generateQuizWithGoogleSearch($animes, 'genres', $numberOfQuestions);
+        }
+    }
+
+    /**
+     * Génère du contenu directement à partir d'un prompt textuel
+     */
+    public function generateContentDirect(string $prompt): string
+    {
+        $requestContent = [
+            'contents' => [
+                [
+                    'role' => 'user',
+                    'parts' => [
+                        ['text' => $prompt]
+                    ]
+                ]
+            ],
+            'generationConfig' => [
+                'temperature' => 0.7,
+                'maxOutputTokens' => 2048,
+            ]
+        ];
+
+        try {
+            $response = $this->httpClient->request('POST', $this->baseUrl . '?key=' . $this->apiKey, [
+                'json' => $requestContent
+            ]);
+
+            $data = $response->toArray();
+            
+            if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+                return $data['candidates'][0]['content']['parts'][0]['text'];
+            }
+            
+            return "Désolé, je n'ai pas pu générer de contenu.";
+        } catch (\Exception $e) {
+            error_log('Erreur lors de l\'appel à l\'API Gemini: ' . $e->getMessage());
+            return "Erreur lors de la génération du contenu.";
+        }
+    }
+
+    /**
+     * Génère des questions de quiz sur les personnages d'anime en utilisant la recherche Google
+     */
+    private function generateCharacterQuizWithGoogleSearch(array $animes, int $numberOfQuestions = 5): array
+    {
+        // Sélectionner aléatoirement un nombre limité d'animes pour le quiz
+        shuffle($animes);
+        $selectedAnimes = array_slice($animes, 0, min(count($animes), $numberOfQuestions));
+        
+        $quizQuestions = [];
+        
+        foreach ($selectedAnimes as $anime) {
+            // Effectuer une recherche Google sur les personnages de cet anime
+            $searchResults = $this->googleSearchService->searchAnimeInfo($anime->getName(), 'characters');
+            
+            // Si la recherche échoue, utiliser des données simulées
+            if (empty($searchResults)) {
+                $searchResults = $this->googleSearchService->mockSearchAnimeInfo($anime->getName(), 'characters');
+            }
+            
+            // Extraire les noms des personnages depuis les résultats de recherche
+            $characterNames = $this->extractCharacterNames($searchResults, $anime->getName());
+            
+            // S'il n'y a pas assez de personnages extraits, utiliser des noms génériques
+            if (count($characterNames) < 4) {
+                // Déterminer un nom de personnage principal potentiel basé sur l'anime
+                $mainCharacter = $this->guessMainCharacter($anime->getName());
+                $characterNames = $this->getDefaultCharacters($anime->getName(), $mainCharacter);
+            }
+            
+            // S'assurer que nous avons au moins 4 noms de personnages distincts
+            $characterNames = array_unique($characterNames);
+            while (count($characterNames) < 4) {
+                $characterNames[] = "Personnage " . count($characterNames);
+            }
+            
+            // Limiter à 4 personnages si nécessaire
+            if (count($characterNames) > 4) {
+                $characterNames = array_slice($characterNames, 0, 4);
+            }
+            
+            // Déterminer la bonne réponse (premier personnage extrait ou deviné)
+            $correctAnswer = $characterNames[0];
+            
+            // Mélanger les options pour que la bonne réponse ne soit pas toujours la première
+            shuffle($characterNames);
+            
+            // Générer une question basée sur les informations extraites
+            $questionText = $this->generateCharacterQuestionText($anime->getName(), $correctAnswer, $searchResults);
+            
+            // Ajouter la question au quiz
+            $quizQuestions[] = [
+                'id' => $anime->getId(),
+                'question' => $questionText,
+                'image' => $anime->getImage(),
+                'options' => $characterNames,
+                'correct_answer' => $correctAnswer
+            ];
+        }
+        
+        return $quizQuestions;
+    }

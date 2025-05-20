@@ -1,0 +1,19 @@
+{{ form_start(form) }}
+    {{ form_errors(form) }}
+    
+    <div class="form-group">
+        {{ form_label(form.name) }}
+        {{ form_widget(form.name, {'attr': {'class': 'form-control genre-input', 'placeholder': 'Enter genre name'}}) }}
+        {{ form_errors(form.name) }}
+    </div>
+    
+    <div class="form-group">
+        {{ form_label(form.descrition) }}
+        {{ form_widget(form.descrition, {'attr': {'class': 'form-control genre-textarea', 'placeholder': 'Enter genre description'}}) }}
+        {{ form_errors(form.descrition) }}
+    </div>
+    
+    <button class="submit-button">
+        <i class="fa fa-save mr-2"></i> {{ button_label|default('Save') }}
+    </button>
+{{ form_end(form) }}

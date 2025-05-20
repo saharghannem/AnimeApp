@@ -1,0 +1,139 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Anime | Homepage{% endblock %}
+
+{% block hero %}
+<!-- Hero Section Begin -->
+<section class="hero" style="min-height: 500px;">
+    <div class="container">
+        <div class="hero__slider owl-carousel">
+            {% if animes|length > 0 %}
+                {% for anime in animes %}
+                    <div class="hero__items set-bg"
+                         data-setbg="{{ anime.image is defined and anime.image is not empty ? anime.image : '/img/hero/hero-1.jpg' }}"
+                         style="background-image: url('{{ anime.image is defined and anime.image is not empty ? anime.image : '/img/hero/hero-1.jpg' }}'); height: 500px;">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="hero__text">
+                                    <div class="label">{{ anime.genre_id is defined and anime.genre_id is not null ? anime.genre_id.name : 'Adventure' }}</div>
+                                    <h2>{{ anime.name }}</h2>
+                                    <p>{{ anime.description is defined and anime.description is not empty ? anime.description|slice(0, 80) ~ '...' : 'After 30 days of travel across the world...' }}</p>
+                                    <a href="{{ path('app_anime_show', {'id': anime.id}) }}"><span>Watch Now</span> <i class="fa fa-angle-right"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="hero__items set-bg" data-setbg="/img/hero/hero-1.jpg"
+                     style="background-image: url('/img/hero/hero-1.jpg'); height: 500px;">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="hero__text">
+                                <div class="label">Adventure</div>
+                                <h2>Fate / Stay Night: Unlimited Blade Works</h2>
+                                <p>After 30 days of travel across the world...</p>
+                                <a href="#"><span>Watch Now</span> <i class="fa fa-angle-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+<!-- Hero Section End -->
+
+{% endblock %}
+
+{% block body %}
+<!-- Product Section Begin -->
+<section class="product spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="trending__product">
+                    <div class="row">
+                        <div class="col-lg-8 col-md-8 col-sm-8">
+                            <div class="section-title">
+                                <h4>Nos Animes</h4>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-4">
+                            <div class="btn__all">
+                                <a href="{{ path('app_anime_index') }}" class="primary-btn">Voir Tout <span class="arrow_right"></span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        {% if animes|length > 0 %}
+                            {% for anime in animes %}
+                                <div class="col-lg-4 col-md-6 col-sm-6">
+                                    <div class="product__item">
+                                        <div class="product__item__pic set-bg" data-setbg="{% if anime.image is defined and anime.image is not empty %}{{ anime.image }}{% else %}/img/trending/trend-1.jpg{% endif %}" style="background-image: url('{% if anime.image is defined and anime.image is not empty %}{{ anime.image }}{% else %}/img/trending/trend-1.jpg{% endif %}');">
+                                            <div class="ep">{{ anime.id }}</div>
+                                            <div class="comment"><i class="fa fa-comments"></i> {{ anime.id * 5 }}</div>
+                                            <div class="view"><i class="fa fa-eye"></i> {{ anime.id * 75 }}</div>
+                                        </div>
+                                        <div class="product__item__text">
+                                            <ul>
+                                                <li>{{ anime.genre_id is defined and anime.genre_id is not null ? anime.genre_id.name : 'Animation' }}</li>
+                                                <li>Anime</li>
+                                            </ul>
+                                            <h5><a href="{{ path('app_anime_show', {'id': anime.id}) }}">{{ anime.name }}</a></h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12 text-center">
+                                <div style="padding: 50px; background-color: #1c1c3a; border-radius: 10px;">
+                                    <i class="fa fa-film" style="font-size: 3rem; color: #e53637; margin-bottom: 20px;"></i>
+                                    <h5 style="color: #ffffff; margin-bottom: 20px;">Aucun anime n'a été ajouté pour le moment</h5>
+                                    <a href="{{ path('app_anime_new') }}" class="site-btn">Ajouter un anime</a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Continue with popular product, recent product, and live product sections -->
+                
+            </div>
+            <div class="col-lg-4 col-md-6 col-sm-8">
+                <div class="product__sidebar">
+                    <div class="product__sidebar__view">
+                        <div class="section-title">
+                            <h5>Top Views</h5>
+                        </div>
+                        <ul class="filter__controls">
+                            <li class="active" data-filter="*">Day</li>
+                            <li data-filter=".week">Week</li>
+                            <li data-filter=".month">Month</li>
+                            <li data-filter=".years">Years</li>
+                        </ul>
+                        <div class="filter__gallery">
+                            <div class="product__sidebar__view__item set-bg mix day years"
+                            data-setbg="/img/sidebar/tv-1.jpg" style="background-image: url('/img/sidebar/tv-1.jpg'); height: 190px;">
+                            <div class="ep">18 / ?</div>
+                            <div class="view"><i class="fa fa-eye"></i> 9141</div>
+                            <h5><a href="#">Boruto: Naruto next generations</a></h5>
+                        </div>
+                        <div class="product__sidebar__view__item set-bg mix month week"
+                        data-setbg="/img/sidebar/tv-2.jpg" style="background-image: url('/img/sidebar/tv-2.jpg'); height: 190px;">
+                        <div class="ep">18 / ?</div>
+                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
+                        <h5><a href="#">The Seven Deadly Sins: Wrath of the Gods</a></h5>
+                    </div>
+                    
+                    <!-- Continue with other sidebar items -->
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</section>
+<!-- Product Section End -->
+{% endblock %}
