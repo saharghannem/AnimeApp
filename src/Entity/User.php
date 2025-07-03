@@ -17,7 +17,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: "string", length: 250)]
     private string $username;
 
-    #[ORM\Column(type: "string", length: 250, unique: true)] // Added unique constraint for email
+    #[ORM\Column(type: "string", length: 250, unique: true)]
     private string $email;
 
     #[ORM\Column(type: "string", length: 250)]
@@ -30,7 +30,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getUsername(): string
     {
-        return $this->username; // Updated to return username instead of email
+        return $this->username;
     }
 
     public function setUsername(string $value): self
@@ -69,7 +69,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
-        if ($this->email === 'admin@exemple.com') {
+        if ($this->email === 'admin@anime.tn') {
             return ['ROLE_ADMIN', 'ROLE_USER'];
         }
         return ['ROLE_USER'];

@@ -17,7 +17,7 @@ class ExcelExportService
     public function exportAnimes($animes, $filename = 'animes-export.csv')
     {
         $exporter = new SimpleExcelExport('Liste des Animes');
-        
+
         // Définir les en-têtes
         $exporter->setHeaders([
             'ID',
@@ -26,7 +26,7 @@ class ExcelExportService
             'Status',
             'Age'
         ]);
-        
+
         // Ajouter les données
         foreach ($animes as $anime) {
             $genreName = 'Non catégorisé';
@@ -38,14 +38,14 @@ class ExcelExportService
                 } elseif (method_exists($anime, 'getGenre_id')) {
                     $genre = $anime->getGenre_id();
                 }
-                
+
                 if ($genre && is_object($genre) && method_exists($genre, 'getName')) {
                     $genreName = $genre->getName();
                 }
             } catch (\Exception $e) {
                 // Ignorer l'erreur et utiliser la valeur par défaut
             }
-            
+
             $exporter->addRow([
                 $anime->getId(),
                 $anime->getName(),
@@ -54,18 +54,18 @@ class ExcelExportService
                 $anime->getAge()
             ]);
         }
-        
+
         // Export final
         $exporter->export($filename);
     }
-    
+
     /**
      * Exporter les scores de quiz vers Excel
      */
     public function exportQuizScores($scores, $filename = 'quiz-scores-export.csv')
     {
         $exporter = new SimpleExcelExport('Scores de Quiz');
-        
+
         // Définir les en-têtes
         $exporter->setHeaders([
             'ID',
@@ -74,7 +74,7 @@ class ExcelExportService
             'Date',
             'Difficulté'
         ]);
-        
+
         // Ajouter les données
         foreach ($scores as $score) {
             $username = 'Anonyme';
@@ -86,7 +86,7 @@ class ExcelExportService
             } catch (\Exception $e) {
                 // Ignorer l'erreur et utiliser la valeur par défaut
             }
-            
+
             $exporter->addRow([
                 $score->getId(),
                 $username,
@@ -95,7 +95,7 @@ class ExcelExportService
                 $score->getDifficulty() ?: 'Standard'
             ]);
         }
-        
+
         // Export final
         $exporter->export($filename);
     }

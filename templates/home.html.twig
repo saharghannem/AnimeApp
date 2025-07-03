@@ -137,3 +137,24 @@
 </section>
 <!-- Product Section End -->
 {% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $(document).ready(function(){
+            $('.hero__slider').owlCarousel({
+                loop: true,
+                margin: 0,
+                items: 1,
+                autoplay: true,
+                nav: true,
+                dots: true,
+                animateOut: 'fadeOut',
+                animateIn: 'fadeIn',
+                smartSpeed: 1200,
+                autoHeight: false,
+                autoplayTimeout: 5000,
+                navText: ['<i class="fa fa-angle-left"></i>', '<i class="fa fa-angle-right"></i>']
+            });
+        });
+    </script>
+{% endblock %}

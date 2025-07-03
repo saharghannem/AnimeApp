@@ -321,6 +321,18 @@
                             class="type-button {{ quiz_type == 'statuts' ? 'active' : '' }}">
                             Quiz des statuts
                         </a>
+                        <a href="{{ path('app_quiz_leaderboard', {'type': 'univers'}) }}" 
+                            class="type-button {{ quiz_type == 'univers' ? 'active' : '' }}">
+                            Quiz des univers
+                        </a>
+                        <a href="{{ path('app_quiz_leaderboard', {'type': 'intrigue'}) }}" 
+                            class="type-button {{ quiz_type == 'intrigue' ? 'active' : '' }}">
+                            Quiz des intrigues
+                        </a>
+                        <a href="{{ path('app_quiz_leaderboard', {'type': 'personnages'}) }}" 
+                            class="type-button {{ quiz_type == 'personnages' ? 'active' : '' }}">
+                            Quiz des personnages
+                        </a>
                     </div>
                     
                     {% if app.user %}
@@ -352,6 +364,12 @@
                                                     Quiz des âges
                                                 {% elseif score.quizType == 'statuts' %}
                                                     Quiz des statuts
+                                                    {% elseif score.quizType == 'univers' %}
+                                                    Quiz des univers
+                                                    {% elseif score.quizType == 'intrigue' %}
+                                                    Quiz des intrigues
+                                                    {% elseif score.quizType == 'personnages' %}
+                                                    Quiz des personnages
                                                 {% else %}
                                                     Quiz inconnu
                                                 {% endif %}
@@ -409,6 +427,9 @@
                                                 Quiz des âges
                                             {% elseif score.quizType == 'statuts' %}
                                                 Quiz des statuts
+                                            {% elseif score.quizType == 'univers' %}
+                                                Quiz des univers
+                                           
                                             {% else %}
                                                 Quiz inconnu
                                             {% endif %}

@@ -20,67 +20,65 @@ class GoogleSearchService
     }
 
     /**
-     * Effectue une recherche Google pour un anime spécifique
+     * Effectue une recherche Google pour un anime spécifique ou une requête générale
      */
-    public function searchAnimeInfo(string $animeName, string $searchType = 'characters'): array
+    public function searchAnimeInfo(string $query, string $searchType = 'general', int $numResults = 5): array
     {
-        // Si l'anime est vide, retourner directement la version simulée
-        if (empty(trim($animeName))) {
-            error_log('Anime name is empty, using mock data');
+        // Si la requête est vide, retourner directement la version simulée
+        if (empty(trim($query))) {
+            error_log('Query is empty, using mock data');
             return $this->mockSearchAnimeInfo('Unknown anime', $searchType);
         }
-        
-        $query = '';
-        
+
+        // Construire la requête en fonction du type de recherche
         switch ($searchType) {
             case 'characters':
-                $query = "personnages principaux anime {$animeName}";
+                $query = "personnages principaux anime {$query}";
                 break;
             case 'universe':
-                $query = "univers monde setting pouvoirs anime {$animeName}";
+                $query = "univers monde setting pouvoirs anime {$query}";
                 break;
             case 'plot':
-                $query = "intrigue histoire résumé anime {$animeName}";
+                $query = "intrigue histoire résumé anime {$query}";
                 break;
             case 'genres':
-                $query = "genre categorie type anime {$animeName}";
+                $query = "genre categorie type anime {$query}";
                 break;
             case 'ages':
-                $query = "classification âge public cible anime {$animeName}";
+                $query = "classification âge public cible anime {$query}";
                 break;
             case 'statuts':
-                $query = "statut état diffusion anime {$animeName} terminé en cours";
+                $query = "statut état diffusion anime {$query} terminé en cours";
                 break;
             case 'trailer':
-                $query = "site:imdb.com trailers anime {$animeName} OR site:youtube.com official trailer anime {$animeName} HD";
+                $query = "official trailer anime {$query} site:youtube.com | site:imdb.com";
                 break;
             default:
-                $query = "anime {$animeName} {$searchType}";
+                $query = "anime {$query} {$searchType}";
         }
 
         error_log("Google Search Query: {$query}");
         error_log("SearchEngineID: {$this->searchEngineId}");
         error_log("API Key (first 10 chars): " . substr($this->apiKey, 0, 10) . '...');
-        
+
         try {
             // URL de l'API Google Custom Search
             $url = 'https://www.googleapis.com/customsearch/v1';
-            
+
             // Paramètres de la recherche
             $params = [
                 'key' => $this->apiKey,
                 'cx' => $this->searchEngineId,
                 'q' => $query,
-                'num' => 5, // Nombre de résultats
+                'num' => min($numResults, 10), // Limite à 10 résultats max
                 'safe' => 'active' // SafeSearch activé
-                // Suppression du paramètre lr pour permettre des résultats dans toutes les langues
             ];
-            
+
             // Construction de l'URL avec les paramètres
             $url .= '?' . http_build_query($params);
-            
+
             error_log("URL de recherche: {$url}");
-            
+
             // Exécution de la requête avec timeout explicite
             $response = $this->httpClient->request('GET', $url, [
                 'timeout' => 5, // Timeout de 5 secondes
@@ -88,10 +86,10 @@ class GoogleSearchService
             ]);
             $statusCode = $response->getStatusCode();
             error_log("Status code: {$statusCode}");
-            
+
             $data = $response->toArray();
-            error_log("Response received: " . json_encode(array_keys($data)));
-            
+            error_log("Response received: " . json_encode($data));
+
             // Extraction des informations utiles
             $results = [];
             if (isset($data['items']) && !empty($data['items'])) {
@@ -110,19 +108,20 @@ class GoogleSearchService
                     error_log("Google API Error: " . json_encode($data['error']));
                 }
             }
-            
+
             // Si on n'a pas de résultats, utiliser les données simulées
             if (empty($results)) {
                 error_log("Using mock data as fallback");
-                return $this->mockSearchAnimeInfo($animeName, $searchType);
+                return $this->mockSearchAnimeInfo($query, $searchType);
             }
-            
+
             return $results;
         } catch (\Exception $e) {
             error_log('Exception lors de la recherche Google: ' . $e->getMessage());
             error_log('Trace: ' . $e->getTraceAsString());
+            error_log('Full response (if available): ' . ($response->getContent(false) ?? 'No response'));
             // Utiliser les données simulées en cas d'erreur
-            return $this->mockSearchAnimeInfo($animeName, $searchType);
+            return $this->mockSearchAnimeInfo($query, $searchType);
         }
     }
 
@@ -140,7 +139,7 @@ class GoogleSearchService
                         [
                             'title' => "Naruto Uzumaki et les personnages de Naruto - Guide officiel",
                             'link' => "https://myanimelist.net/anime/20/Naruto",
-                            'snippet' => "Naruto Uzumaki est le protagoniste principal de la série, un ninja hyperactif et déterminé qui rêve de devenir Hokage. D'autres personnages clés incluent Sasuke Uchiha, Sakura Haruno et Kakashi Hatake.",
+                            'snippet' => "Naruto Uzumaki est le protagoniste principal, un ninja hyperactif et déterminé qui rêve de devenir Hokage. D'autres personnages clés incluent Sasuke Uchiha, Sakura Haruno et Kakashi Hatake.",
                             'source' => 'myanimelist.net'
                         ],
                         [
@@ -156,9 +155,7 @@ class GoogleSearchService
                             'source' => 'naruto.fandom.com'
                         ]
                     ];
-                }
-                
-                else if (stripos($animeName, 'one piece') !== false) {
+                } elseif (stripos($animeName, 'one piece') !== false) {
                     return [
                         [
                             'title' => "L'équipage du Chapeau de Paille - Personnages principaux de One Piece",
@@ -179,9 +176,7 @@ class GoogleSearchService
                             'source' => 'onepiece.fandom.com'
                         ]
                     ];
-                }
-                
-                else if (stripos($animeName, 'attack on titan') !== false || stripos($animeName, 'shingeki no kyojin') !== false) {
+                } elseif (stripos($animeName, 'attack on titan') !== false || stripos($animeName, 'shingeki no kyojin') !== false) {
                     return [
                         [
                             'title' => "Eren Jaeger et les personnages principaux de L'Attaque des Titans",
@@ -202,9 +197,7 @@ class GoogleSearchService
                             'source' => 'attackontitan.fandom.com'
                         ]
                     ];
-                }
-                
-                else if (stripos($animeName, 'hunter') !== false) {
+                } elseif (stripos($animeName, 'hunter') !== false) {
                     return [
                         [
                             'title' => "Les Hunters principaux de Hunter x Hunter",
@@ -225,9 +218,7 @@ class GoogleSearchService
                             'source' => 'hunterxhunter.fandom.com'
                         ]
                     ];
-                }
-                
-                else if (stripos($animeName, 'dragon ball') !== false) {
+                } elseif (stripos($animeName, 'dragon ball') !== false) {
                     return [
                         [
                             'title' => "Les Saiyans et personnages principaux de Dragon Ball",
@@ -249,8 +240,8 @@ class GoogleSearchService
                         ]
                     ];
                 }
-                
-                // Pour les autres animes, générer des informations génériques mais avec le nom de l'anime
+
+                // Pour les autres animes, générer des informations génériques
                 return [
                     [
                         'title' => "Les personnages principaux de {$animeName} - MyAnimeList",
@@ -259,7 +250,7 @@ class GoogleSearchService
                         'source' => 'myanimelist.net'
                     ],
                     [
-                        'title' => "{$animeName} - Analyse des personnages et relations - Anime News Network",
+                        'title' => "{$animeName} - Analyse des personnages - Anime News Network",
                         'link' => "https://www.animenewsnetwork.com/encyclopedia/anime.php?search={$animeName}",
                         'snippet' => "Les relations entre les personnages de {$animeName} sont complexes et évoluent au cours de l'histoire. Les protagonistes font face à des défis qui testent leurs liens et révèlent leur véritable nature.",
                         'source' => 'animenewsnetwork.com'
@@ -271,9 +262,8 @@ class GoogleSearchService
                         'source' => 'anime.fandom.com'
                     ]
                 ];
-                
+
             case 'universe':
-                // Univers dynamiques spécifiques à chaque anime
                 if (stripos($animeName, 'naruto') !== false) {
                     return [
                         [
@@ -295,9 +285,7 @@ class GoogleSearchService
                             'source' => 'cbr.com'
                         ]
                     ];
-                }
-                
-                else if (stripos($animeName, 'one piece') !== false) {
+                } elseif (stripos($animeName, 'one piece') !== false) {
                     return [
                         [
                             'title' => "La Géographie et les mers de One Piece",
@@ -318,9 +306,7 @@ class GoogleSearchService
                             'source' => 'cbr.com'
                         ]
                     ];
-                }
-                
-                else if (stripos($animeName, 'attack on titan') !== false || stripos($animeName, 'shingeki no kyojin') !== false) {
+                } elseif (stripos($animeName, 'attack on titan') !== false || stripos($animeName, 'shingeki no kyojin') !== false) {
                     return [
                         [
                             'title' => "Les murs et la géographie de L'Attaque des Titans",
@@ -341,9 +327,7 @@ class GoogleSearchService
                             'source' => 'cbr.com'
                         ]
                     ];
-                }
-                
-                else if (stripos($animeName, 'hunter') !== false) {
+                } elseif (stripos($animeName, 'hunter') !== false) {
                     return [
                         [
                             'title' => "La géographie et les territoires dans Hunter x Hunter",
@@ -364,9 +348,7 @@ class GoogleSearchService
                             'source' => 'cbr.com'
                         ]
                     ];
-                }
-                
-                else if (stripos($animeName, 'dragon ball') !== false) {
+                } elseif (stripos($animeName, 'dragon ball') !== false) {
                     return [
                         [
                             'title' => "L'univers et les planètes de Dragon Ball",
@@ -388,8 +370,8 @@ class GoogleSearchService
                         ]
                     ];
                 }
-                
-                // Pour les autres animes, générer des informations génériques mais avec le nom de l'anime
+
+                // Pour les autres animes, générer des informations génériques
                 return [
                     [
                         'title' => "L'univers et le monde de {$animeName} - Guide complet",
@@ -410,9 +392,8 @@ class GoogleSearchService
                         'source' => 'cbr.com'
                     ]
                 ];
-                
+
             case 'plot':
-                // Intrigues dynamiques spécifiques à chaque anime
                 if (stripos($animeName, 'naruto') !== false) {
                     return [
                         [
@@ -434,9 +415,7 @@ class GoogleSearchService
                             'source' => 'animenewsnetwork.com'
                         ]
                     ];
-                }
-                
-                else if (stripos($animeName, 'one piece') !== false) {
+                } elseif (stripos($animeName, 'one piece') !== false) {
                     return [
                         [
                             'title' => "La quête du One Piece: L'aventure de Luffy et son équipage",
@@ -457,9 +436,7 @@ class GoogleSearchService
                             'source' => 'animenewsnetwork.com'
                         ]
                     ];
-                }
-                
-                else if (stripos($animeName, 'attack on titan') !== false || stripos($animeName, 'shingeki no kyojin') !== false) {
+                } elseif (stripos($animeName, 'attack on titan') !== false || stripos($animeName, 'shingeki no kyojin') !== false) {
                     return [
                         [
                             'title' => "L'Attaque des Titans: De la chute du Mur Maria à la vérité sur le monde",
@@ -480,9 +457,7 @@ class GoogleSearchService
                             'source' => 'animenewsnetwork.com'
                         ]
                     ];
-                }
-                
-                else if (stripos($animeName, 'hunter') !== false) {
+                } elseif (stripos($animeName, 'hunter') !== false) {
                     return [
                         [
                             'title' => "Hunter x Hunter: Le voyage initiatique de Gon Freecss",
@@ -503,9 +478,7 @@ class GoogleSearchService
                             'source' => 'animenewsnetwork.com'
                         ]
                     ];
-                }
-                
-                else if (stripos($animeName, 'dragon ball') !== false) {
+                } elseif (stripos($animeName, 'dragon ball') !== false) {
                     return [
                         [
                             'title' => "L'épopée de Son Goku: De Dragon Ball à Dragon Ball Super",
@@ -527,8 +500,8 @@ class GoogleSearchService
                         ]
                     ];
                 }
-                
-                // Pour les autres animes, générer des informations génériques mais avec le nom de l'anime
+
+                // Pour les autres animes, générer des informations génériques
                 return [
                     [
                         'title' => "Synopsis et intrigue principale de {$animeName}",
@@ -549,7 +522,7 @@ class GoogleSearchService
                         'source' => 'animenewsnetwork.com'
                     ]
                 ];
-                
+
             default:
                 return [
                     [

@@ -63,20 +63,42 @@
                 </div>
             </div>
         </div>
-        {# Utiliser notre service local de trailers plutôt que l'URL stockée dans la BD #}
+        {# Trailer Section with YouTube embed URL conversion #}
         <div class="row">
-            <div class="col-lg-8 col-md-8">
-                <div class="anime__details__review">
-                    <div class="section-title">
-                        <h5>Trailer</h5>
-                    </div>
-                    <div class="anime__details__trailer">
-                        <iframe width="100%" height="480" src="{{ trailerInfo.url }}" 
-                            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowfullscreen></iframe>
-                        <p class="mt-3">{{ trailerInfo.description }}</p>
-                    </div>
-                </div>
+            <div class="anime__details__review">
+            <div class="section-title">
+                <h5>Trailer</h5>
+            </div>
+        
+            {% if trailerInfo is defined and trailerInfo.url is defined and trailerInfo.url is not empty %}
+                {% set url = trailerInfo.url %}
+        
+                {# Extraction de l’ID vidéo YouTube #}
+                {% if url matches '#youtube\.com/watch\?v=#' %}
+                    {% set videoId = url|split('v=')|last|split('&')|first %}
+                    {% set embedUrl = 'https://www.youtube.com/embed/' ~ videoId %}
+                {% elseif url matches '#youtu\.be/#' %}
+                    {% set videoId = url|split('/')|last %}
+                    {% set embedUrl = 'https://www.youtube.com/embed/' ~ videoId %}
+                {% elseif url matches '#youtube\.com/embed/#' %}
+                    {% set embedUrl = url %}
+                {% else %}
+                    {% set embedUrl = url %}
+                {% endif %}
+        
+                <iframe width="900" height="480"
+                    src="{{ embedUrl }}"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+        
+                <p class="mt-3">{{ trailerInfo.description|default('') }}</p>
+        
+            {% else %}
+                <p>No trailer available.</p>
+            {% endif %}
+        </div>
+        
             </div>
         </div>
     </div>

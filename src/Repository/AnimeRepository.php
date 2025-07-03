@@ -13,10 +13,10 @@ class AnimeRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Anime::class);
+        parent::__construct($registry, entityClass: Anime::class);
     }
 
-//    /**
+    //    /**
 //     * @return Anime[] Returns an array of Anime objects
 //     */
 //    public function findByExampleField($value): array
@@ -31,7 +31,7 @@ class AnimeRepository extends ServiceEntityRepository
 //        ;
 //    }
 
-//    public function findOneBySomeField($value): ?Anime
+    //    public function findOneBySomeField($value): ?Anime
 //    {
 //        return $this->createQueryBuilder('a')
 //            ->andWhere('a.exampleField = :val')
