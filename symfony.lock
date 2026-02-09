@@ -1,5 +1,5 @@
 {
-    "doctrine/doctrine-bundle": {
+    "doctrine/doctrine-bundle": { 
         "version": "2.14",
         "recipe": {
             "repo": "github.com/symfony/recipes",
