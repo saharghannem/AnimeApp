@@ -11,7 +11,7 @@ class GeminiService
 
     public function __construct(HttpClientInterface $httpClient)
     {
-        $this->apiKey = 'AIzaSyBcCKLMBolJ6pEOQOyXheQoBSWekcyLJp4';
+        $this->apiKey = 'Gemini-api';
         $this->httpClient = $httpClient;
     }
 
