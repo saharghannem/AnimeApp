@@ -8,7 +8,7 @@ use Symfony\Component\Mime\Email;
 class BrevoEmailService
 {
     private MailerInterface $mailer;
-    private string $ADMIN_EMAIL = 'ghannemsahar2002@gmail.com';
+    private string $ADMIN_EMAIL = 'adresse mail';
     private string $SENDER_NAME = 'Anime App Notification';
 
     public function __construct(MailerInterface $mailer)
